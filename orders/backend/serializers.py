@@ -103,9 +103,11 @@ class OrderItemSerializer(serializers.ModelSerializer):
 
 
 class AddContactSerializer(serializers.ModelSerializer):
+    contact_id = serializers.IntegerField(source='id', read_only=True) # <-- Добавляем новое поле
+
     class Meta:
         model = Contact
-        fields = ('city', 'street', 'house', 'structure', 'building', 'apartment', 'phone')
+        fields = ('contact_id', 'city', 'street', 'house', 'structure', 'building', 'apartment', 'phone')
 
     def create(self, validated_data):
         # user заполняется автоматически во view

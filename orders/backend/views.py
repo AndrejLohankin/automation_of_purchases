@@ -39,15 +39,20 @@ class RegisterView(APIView):
     """
     Регистрация пользователя.
     """
-
     def post(self, request):
         serializer = UserRegistrationSerializer(data=request.data)
         if serializer.is_valid():
             user = serializer.save()
-            # Опционально: отправить токен подтверждения email
-            # confirm_token = ConfirmEmailToken.objects.create(user=user)
-            # send_confirmation_email.delay(confirm_token.key, user.email) # Если используешь Celery
-            return Response({'message': 'Пользователь успешно зарегистрирован'}, status=status.HTTP_201_CREATED)
+            # --- НОВЫЙ КОД ---
+            # Вызываем функцию отправки email подтверждения
+            from .tasks import send_registration_confirmation_email
+            success = send_registration_confirmation_email(user.email, user.id)
+            if success:
+                message = 'Пользователь успешно зарегистрирован. Проверьте ваш email для подтверждения.'
+            else:
+                message = 'Пользователь успешно зарегистрирован, но письмо подтверждения не было отправлено.'
+            # ----------------
+            return Response({'message': message}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -84,12 +89,22 @@ class CartView(APIView):
 
     def get(self, request):
         """
-        Получить содержимое корзины.
+        Получить содержимое корзины и её ID.
         """
+        # Получаем или создаём корзину (Order со статусом 'basket') для текущего пользователя
         cart, created = Order.objects.get_or_create(user=request.user, state='basket')
+
+        # Получаем элементы корзины (OrderItem)
         items = cart.ordered_items.all()
+
+        # Сериализуем элементы
         serializer = CartItemSerializer(items, many=True)
-        return Response(serializer.data)
+
+        # Возвращаем ID корзины и содержимое
+        return Response({
+            'basket_id': cart.id,  # <-- Добавляем ID корзины
+            'items': serializer.data
+        })
 
     def post(self, request):
         """
@@ -173,7 +188,16 @@ class AddContactView(generics.CreateAPIView):
 
     def perform_create(self, serializer):
         # Привязываем контакт к текущему пользователю
-        serializer.save(user=self.request.user)
+        user = self.request.user
+        serializer.save(user=user)
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        # Возвращаем только ID созданного контакта
+        headers = self.get_success_headers(serializer.data)
+        return Response({'contact_id': serializer.instance.id}, status=status.HTTP_201_CREATED, headers=headers)
 
 
 class OrderConfirmationView(APIView):
@@ -189,14 +213,17 @@ class OrderConfirmationView(APIView):
             contact = serializer.validated_data['contact_id']
 
             # Обновляем статус корзины
-            basket.state = 'new'  # или 'confirmed'
+            basket.state = 'confirmed' # или 'new', как у тебя принято
             basket.contact = contact
             basket.save()
 
-            # Здесь можно запустить задачу на отправку email
-            # send_order_confirmation_email.delay(basket.id, contact.id)
+            # --- НОВЫЙ КОД ---
+            # Запускаем задачу на отправку email
+            from .tasks import send_order_confirmation_email
+            send_order_confirmation_email(basket.id, contact.id)
+            # ----------------
 
-            return Response({'message': 'Заказ подтвержден'}, status=status.HTTP_200_OK)
+            return Response({'message': 'Заказ подтвержден. Информация продублирована на Вашу почту.'}, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -210,3 +237,18 @@ class OrderHistoryView(generics.ListAPIView):
     def get_queryset(self):
         # Возвращаем все заказы пользователя, кроме корзины
         return Order.objects.filter(user=self.request.user).exclude(state='basket').order_by('-dt')
+
+class ContactListView(generics.ListAPIView):
+    """
+    Получить список контактов пользователя.
+    Только аутентифицированный пользователь может получить свои контакты.
+    """
+    # Можно создать отдельный сериализатор, если нужно больше контроля
+    # или исключить поля из представления. Пока используем AddContactSerializer.
+    serializer_class = AddContactSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        # Возвращаем только контакты текущего аутентифицированного пользователя
+        user = self.request.user
+        return Contact.objects.filter(user=user)
