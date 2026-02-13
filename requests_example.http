@@ -1,0 +1,95 @@
+# requests_example.http
+
+### --- Конфигурация ---
+@baseUrl = http://127.0.0.1:8000/api/v1
+# Для сессионной аутентификации сохраняем куки в файл
+@cookie_jar = ./cookies.txt
+
+### --- Регистрация ---
+# POST /api/v1/register/
+POST {{baseUrl}}/register/
+Content-Type: application/json
+
+{
+    "first_name": "Test3",
+    "last_name": "User3",
+    "email": "testuser@example3.com",
+    "password": "securepassword1233"
+}
+
+
+### --- Вход ---
+# POST /api/v1/login/
+# Использует куки для аутентификации в последующих запросах
+POST {{baseUrl}}/login/
+Content-Type: application/json
+
+{
+    "email": "testuser@example.com",
+    "password": "securepassword123"
+}
+
+
+### --- Список товаров ---
+# GET /api/v1/products/
+GET {{baseUrl}}/products/
+Accept: application/json
+
+
+### --- Фильтрация списка товаров ---
+# GET /api/v1/products/?search=название_товара
+GET {{baseUrl}}/products/?search=телефон
+Accept: application/json
+
+
+### --- Добавление товара в корзину ---
+# POST /api/v1/basket/
+# Замените product_info_id на реальный ID товара из ответа GET /products/
+POST {{baseUrl}}/basket/
+Content-Type: application/json
+# Куки автоматически подставляются из cookie_jar
+
+{
+    "product_info_id": 1,
+    "quantity": 2
+}
+
+
+### --- Просмотр корзины ---
+# GET /api/v1/basket/
+GET {{baseUrl}}/basket/
+Accept: application/json
+
+
+### --- Добавление контакта ---
+# POST /api/v1/contacts/
+# Добавляет контакт текущему аутентифицированному пользователю
+POST {{baseUrl}}/contacts/
+Content-Type: application/json
+
+{
+    "city": "Moscow",
+    "street": "Tverskaya",
+    "house": "1",
+    "phone": "+71234567890"
+}
+
+
+### --- Подтверждение заказа ---
+# POST /api/v1/orders/confirm/
+# Замените basket_id и contact_id на реальные ID
+# basket_id - это ID заказа со статусом 'basket'
+# contact_id - это ID контакта, добавленного пользователем
+POST {{baseUrl}}/orders/confirm/
+Content-Type: application/json
+
+{
+    "basket_id": 1,
+    "contact_id": 1
+}
+
+
+### --- История заказов ---
+# GET /api/v1/orders/history/
+GET {{baseUrl}}/orders/history/
+Accept: application/json
