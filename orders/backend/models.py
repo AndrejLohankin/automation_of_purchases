@@ -240,13 +240,19 @@ class OrderItem(models.Model):
                                      on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField(verbose_name='Количество')
 
+    def get_total_price(self):
+        # Цена за единицу берется из связанной информации о продукте
+        # Проверяем, что product_info и price существуют
+        if self.product_info and hasattr(self.product_info, 'price'):
+            return self.quantity * self.product_info.price
+        return 0 # Возвращаем 0, если цена не определена
+
     class Meta:
         verbose_name = 'Заказанная позиция'
         verbose_name_plural = "Список заказанных позиций"
         constraints = [
             models.UniqueConstraint(fields=['order_id', 'product_info'], name='unique_order_item'),
         ]
-
 
 class ConfirmEmailToken(models.Model):
     class Meta:
