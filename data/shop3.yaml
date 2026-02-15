@@ -1,0 +1,146 @@
+shop: Эльдорадо
+categories:
+  - id: 201
+    name: Холодильники
+  - id: 202
+    name: Стиральные машины
+  - id: 203
+    name: Пылесосы
+  - id: 204
+    name: Микроволновки
+  - id: 205
+    name: Посудомоечные машины
+  - id: 206
+    name: Утюги
+  - id: 207
+    name: Кухонные плиты
+
+goods:
+  - id: 2001
+    category: 201
+    model: bosch/kgn39vl2ru
+    name: Холодильник Bosch KGN39VL2RU (белый)
+    price: 55000
+    price_rrc: 59990
+    quantity: 7
+    parameters:
+      "Общий объем (л)": 310
+      "Количество камер": 2
+      "Класс энергопотребления": A++
+      "Цвет": белый
+  - id: 2002
+    category: 201
+    model: lg/gb-b247latl
+    name: Холодильник LG GB-B247LATL (серебристый)
+    price: 60000
+    price_rrc: 64990
+    quantity: 5
+    parameters:
+      "Общий объем (л)": 364
+      "Количество камер": 2
+      "Класс энергопотребления": A++
+      "Цвет": серебристый
+  - id: 2003
+    category: 202
+    model: lg/fh4g1047ld
+    name: Стиральная машина LG FH4G1047LD (графит)
+    price: 42000
+    price_rrc: 44990
+    quantity: 9
+    parameters:
+      "Загрузка (кг)": 10
+      "Тип загрузки": фронтальная
+      "Класс энергопотребления": A+++
+      "Цвет": графит
+  - id: 2004
+    category: 202
+    model: samsung/wv642bfwqe
+    name: Стиральная машина Samsung WW90T554DAE/WT (белая)
+    price: 38000
+    price_rrc: 41990
+    quantity: 12
+    parameters:
+      "Загрузка (кг)": 9
+      "Тип загрузки": фронтальная
+      "Класс энергопотребления": A+++
+      "Цвет": белая
+  - id: 2005
+    category: 203
+    model: dyson/v11-absolute
+    name: Пылесос Dyson V11 Absolute (бирюзовый)
+    price: 65000
+    price_rrc: 69990
+    quantity: 5
+    parameters:
+      "Тип": беспроводной
+      "Время работы (мин)": 60
+      "Объем контейнера (л)": 0.77
+      "Цвет": бирюзовый
+  - id: 2006
+    category: 203
+    model: xiaomi/vacuum-mop-2-pro
+    name: Робот-пылесос Xiaomi Vacuum Mop 2 Pro
+    price: 35000
+    price_rrc: 37990
+    quantity: 8
+    parameters:
+      "Тип": робот-пылесос
+      "Время работы (мин)": 150
+      "Объем контейнера (л)": 0.4
+      "Мойка полов": да
+  - id: 2007
+    category: 204
+    model: samsung/ms23f305euk
+    name: Микроволновая печь Samsung MS23F305EUK (черная)
+    price: 12000
+    price_rrc: 12990
+    quantity: 15
+    parameters:
+      "Объем (л)": 23
+      "Управление": сенсорное
+      "Цвет": черная
+  - id: 2008
+    category: 204
+    model: panasonic/nnp-k674mfpg
+    name: Микроволновая печь Panasonic NNP-K674MFPG (серебристая)
+    price: 15000
+    price_rrc: 16990
+    quantity: 10
+    parameters:
+      "Объем (л)": 25
+      "Управление": сенсорное
+      "Цвет": серебристая
+  - id: 2009
+    category: 205
+    model: bosh/sms46mi01e
+    name: Посудомоечная машина Bosch SMS46MI01E (белая)
+    price: 45000
+    price_rrc: 49990
+    quantity: 6
+    parameters:
+      "Класс энергопотребления": A++
+      "Количество комплектов": 12
+      "Уровень шума (дБ)": 44
+      "Цвет": белая
+  - id: 2010
+    category: 206
+    model: philips/gc2999/30
+    name: Утюг Philips GC2999/30
+    price: 3000
+    price_rrc: 3490
+    quantity: 30
+    parameters:
+      "Мощность (Вт)": 2400
+      "Объем резервуара (мл)": 300
+      "Паровой удар (г/мин)": 120
+  - id: 2011
+    category: 207
+    model: hotpoint/ariston/kftl-930ha
+    name: Кухонная плита Hotpoint Ariston KFTL 930HA (нержавеющая сталь)
+    price: 35000
+    price_rrc: 39990
+    quantity: 4
+    parameters:
+      "Тип": газовая поверхность + электрическая духовка
+      "Количество конфорок": 5
+      "Цвет": нержавеющая сталь
