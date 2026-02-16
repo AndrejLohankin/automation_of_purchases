@@ -11,10 +11,10 @@ POST {{baseUrl}}/register/
 Content-Type: application/json
 
 {
-    "first_name": "Test3",
-    "last_name": "User3",
-    "email": "testuser@example3.com",
-    "password": "securepassword1233"
+    "first_name": "Test",
+    "last_name": "User",
+    "email": "testuser@example.com",
+    "password": "securepassword123"
 }
 
 
@@ -38,7 +38,7 @@ Accept: application/json
 
 ### --- Фильтрация списка товаров ---
 # GET /api/v1/products/?search=название_товара
-GET {{baseUrl}}/products/?search=телефон
+GET {{baseUrl}}/products/?search=Смартфон
 Accept: application/json
 
 
@@ -50,7 +50,7 @@ Content-Type: application/json
 # Куки автоматически подставляются из cookie_jar
 
 {
-    "product_info_id": 1,
+    "product_info_id": 3,
     "quantity": 2
 }
 
