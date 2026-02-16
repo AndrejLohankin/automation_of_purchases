@@ -12,6 +12,7 @@ urlpatterns = [
     path('contacts/list/', views.ContactListView.as_view(), name='contact-list'),  # <-- GET
     path('orders/confirm/', views.OrderConfirmationView.as_view(), name='order-confirm'),
     path('orders/history/', views.OrderHistoryView.as_view(), name='order-history'),
+    path('admin/trigger-import/', views.trigger_import, name='trigger-import'),
     # path('shops/', views.ShopListView.as_view(), name='shop-list'), # Если нужно
     # path('categories/', views.CategoryListView.as_view(), name='category-list'), # Если нужно
 ]

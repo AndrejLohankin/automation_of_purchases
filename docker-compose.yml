@@ -1,0 +1,40 @@
+services:
+  redis:
+    image: redis:latest
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+  celery_worker:
+    build: .
+    command: sh -c "cd /app/orders && celery -A backend worker --loglevel=info --pool=solo"
+    volumes:
+      - .:/app
+    working_dir: /app/orders
+    depends_on:
+      - redis
+    environment:
+      - PYTHONPATH=/app/orders
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - DJANGO_SETTINGS_MODULE=orders.settings
+
+  django:
+    build: .
+    command: sh -c "cd /app/orders && python manage.py runserver 0.0.0.0:8000"
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+    working_dir: /app/orders
+    depends_on:
+      - redis
+    environment:
+      - PYTHONPATH=/app/orders
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - DJANGO_SETTINGS_MODULE=orders.settings
+
+volumes:
+  redis_data:

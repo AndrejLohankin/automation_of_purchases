@@ -12,8 +12,17 @@ from .serializers import (
     CartItemSerializer, AddContactSerializer, OrderConfirmationSerializer,
     OrderHistorySerializer
 )
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAdminUser
+from rest_framework.response import Response
+from .tasks import do_import
+from .models import ImportTask
 from rest_framework.authtoken.models import Token  # Если используем TokenAuthentication
-
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAdminUser
+from rest_framework.response import Response
+from .tasks import do_import
+from .models import ImportTask
 
 class LoginView(APIView):
     """
@@ -252,3 +261,30 @@ class ContactListView(generics.ListAPIView):
         # Возвращаем только контакты текущего аутентифицированного пользователя
         user = self.request.user
         return Contact.objects.filter(user=user)
+
+
+@api_view(['POST'])
+@permission_classes([IsAdminUser])
+def trigger_import(request):
+    """Запуск задачи импорта из админки через Celery"""
+    import_task_id = request.data.get('import_task_id')
+    if not import_task_id:
+        return Response({'error': 'import_task_id required'}, status=400)
+
+    try:
+        import_task = ImportTask.objects.get(id=import_task_id)
+        if import_task.is_processed:
+            return Response({'error': 'Import already processed'}, status=400)
+
+        # Запускаем задачу Celery
+        task = do_import.delay(import_task_id)
+
+        return Response({
+            'task_id': task.id,
+            'status': 'started',
+            'import_task_id': import_task_id
+        })
+    except ImportTask.DoesNotExist:
+        return Response({'error': 'ImportTask not found'}, status=404)
+    except Exception as e:
+        return Response({'error': str(e)}, status=500)

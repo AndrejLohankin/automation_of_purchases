@@ -97,9 +97,11 @@ class ConfirmEmailTokenAdmin(admin.ModelAdmin):
 
 @admin.register(ImportTask)
 class ImportTaskAdmin(admin.ModelAdmin):
-    list_display = ('id', 'uploaded_at', 'is_processed', 'products_count', 'categories_count', 'parameters_count')
+    list_display = ('id', 'uploaded_at', 'is_processed', 'products_count',
+                    'categories_count', 'parameters_count', 'trigger_import_button')
     list_filter = ('is_processed', 'uploaded_at')
-    readonly_fields = ('uploaded_at', 'is_processed', 'products_count', 'categories_count', 'parameters_count')
+    readonly_fields = ('uploaded_at', 'is_processed', 'products_count',
+                       'categories_count', 'parameters_count')
     change_list_template = "admin/import_task_change_list.html"
 
     def get_urls(self):
@@ -110,35 +112,29 @@ class ImportTaskAdmin(admin.ModelAdmin):
         return custom_urls + urls
 
     def import_yaml_view(self, request):
+        """Только загрузка файла, БЕЗ импорта"""
         if request.method == 'POST':
             yaml_file = request.FILES.get('yaml_file')
             if yaml_file:
                 try:
-                    # Читаем YAML напрямую из загруженного файла (исправлена ошибка с encoding)
-                    data = yaml.safe_load(yaml_file.read().decode('utf-8'))
-
-                    # Импортируем данные
-                    stats = self._import_data(data)
-
-                    # Создаём запись об импорте
-                    ImportTask.objects.create(
+                    # Просто сохраняем файл!
+                    import_task = ImportTask.objects.create(
                         yaml_file=yaml_file,
-                        is_processed=True,
-                        products_count=stats['products'],
-                        categories_count=stats['categories'],
-                        parameters_count=stats['parameters']
+                        is_processed=False,
+                        products_count=0,
+                        categories_count=0,
+                        parameters_count=0
                     )
 
                     self.message_user(
                         request,
-                        f'Импорт завершён! Создано: {stats["products"]} товаров, '
-                        f'{stats["categories"]} категорий, {stats["parameters"]} параметров.',
+                        f'Файл загружен. ID: {import_task.id}. '
+                        f'Нажмите "Запустить импорт через Celery" для обработки.',
                         level=messages.SUCCESS
                     )
                     return redirect('admin:backend_importtask_changelist')
-
                 except Exception as e:
-                    self.message_user(request, f'Ошибка импорта: {str(e)}', level=messages.ERROR)
+                    self.message_user(request, f'Ошибка загрузки: {str(e)}', level=messages.ERROR)
             else:
                 self.message_user(request, 'Файл не выбран', level=messages.ERROR)
 
@@ -146,66 +142,32 @@ class ImportTaskAdmin(admin.ModelAdmin):
             'title': 'Импорт товаров из YAML',
         })
 
-    def _import_data(self, data):
-        """Логика импорта данных из YAML"""
-        stats = {'products': 0, 'categories': 0, 'parameters': 0}
-
-        # Получаем или создаём магазин
-        shop_name = data.get('shop', 'Default Shop')
-        shop, _ = Shop.objects.get_or_create(name=shop_name)
-
-        # Импорт категорий
-        categories_data = data.get('categories', [])
-        categories_map = {}
-
-        for cat_data in categories_data:
-            category, created = Category.objects.get_or_create(
-                id=cat_data['id'],
-                defaults={'name': cat_data['name']}
+    def trigger_import_button(self, obj):
+        """Кнопка для запуска импорта через Celery"""
+        if not obj.is_processed:
+            return format_html(
+                '<button type="button" class="button" '
+                'onclick="triggerImport({0})">Запустить импорт через Celery</button>'
+                '<span id="import-status-{0}" style="margin-left: 10px; color: green;"></span>'
+                '<script>'
+                'function triggerImport(id){{'
+                '  fetch("/api/admin/trigger-import/",{{'
+                '    method:"POST",'
+                '    headers:{{"Content-Type":"application/json","X-CSRFToken":getCookie("csrftoken")}},'
+                '    body:JSON.stringify({{import_task_id:id}})'
+                '  }})'
+                '  .then(r=>r.json())'
+                '  .then(d=>{{'
+                '    if(d.task_id){{document.getElementById("import-status-"+id).innerHTML="✅ Запущено! Перезагрузка...";'
+                '      setTimeout(()=>location.reload(),2000);'
+                '    }}else{{document.getElementById("import-status-"+id).innerHTML="❌ "+d.error;}}'
+                '  }})'
+                '  .catch(err=>{{document.getElementById("import-status-"+id).innerHTML="❌ Ошибка соединения";}});'
+                '}}'
+                'function getCookie(name){{let v=null;if(document.cookie){{document.cookie.split(";").forEach(c=>{{if(c.trim().startsWith(name+"="))v=decodeURIComponent(c.trim().substring(name.length+1));}});}}return v;}}'
+                '</script>',
+                obj.id
             )
-            if created:
-                stats['categories'] += 1
-            category.shops.add(shop)
-            categories_map[cat_data['id']] = category
+        return "✅ Обработан через Celery"
 
-        # Импорт товаров
-        goods_data = data.get('goods', [])
-
-        for good in goods_data:
-            # Получаем категорию
-            category = categories_map.get(good['category'])
-            if not category:
-                continue
-
-            # Создаём или получаем продукт
-            product, _ = Product.objects.get_or_create(
-                name=good['name'],
-                defaults={'category': category}
-            )
-
-            # Создаём ProductInfo
-            product_info, _ = ProductInfo.objects.update_or_create(
-                external_id=good['id'],
-                shop=shop,
-                defaults={
-                    'product': product,
-                    'model': good.get('model', ''),
-                    'quantity': good.get('quantity', 0),
-                    'price': good.get('price', 0),
-                    'price_rrc': good.get('price_rrc', 0),
-                }
-            )
-            stats['products'] += 1
-
-            # Импорт параметров
-            parameters = good.get('parameters', {})
-            for param_name, param_value in parameters.items():
-                parameter, _ = Parameter.objects.get_or_create(name=param_name)
-                ProductParameter.objects.update_or_create(
-                    product_info=product_info,
-                    parameter=parameter,
-                    defaults={'value': str(param_value)}
-                )
-                stats['parameters'] += 1
-
-        return stats
+    trigger_import_button.short_description = 'Запуск импорта'
