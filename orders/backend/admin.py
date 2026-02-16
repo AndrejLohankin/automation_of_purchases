@@ -1,39 +1,31 @@
-# backend/admin.py
-
-from django.contrib import admin
+from django.contrib import admin, messages
+from django.shortcuts import render, redirect
+from django.urls import path
+from django.utils.html import format_html
+import yaml
+from django.core.files.storage import default_storage
 from .models import (
     User, Shop, Category, Product, ProductInfo, Parameter,
-    ProductParameter, Order, OrderItem, Contact, ConfirmEmailToken
+    ProductParameter, Order, OrderItem, Contact, ConfirmEmailToken, ImportTask
 )
 
 
 # --- Inline для OrderItem ---
-# Позволяет редактировать OrderItem прямо на странице Order
 class OrderItemInline(admin.TabularInline):
     model = OrderItem
-    extra = 0  # Не показывать пустые строки для добавления
-    # Если в модели OrderItem есть метод get_total_price, можно сделать его доступным только для чтения
-    # readonly_fields = ('get_total_price',)
-    can_delete = True  # Позволить удалять OrderItem через inline форму
+    extra = 0
+    can_delete = True
 
 
 # --- ModelAdmin Classes ---
 
 @admin.register(User)
 class UserAdmin(admin.ModelAdmin):
-    # Показываем основные и кастомные поля
     list_display = ('email', 'first_name', 'last_name', 'type', 'company', 'position', 'is_active', 'date_joined')
-    # Добавляем фильтры
     list_filter = ('type', 'is_active', 'is_staff', 'is_superuser', 'date_joined', 'company')
-    # Поля для поиска
     search_fields = ('email', 'first_name', 'last_name', 'company', 'position')
-    # Поля, которые можно редактировать
-    # exclude = ('password',) # Пароль лучше не редактировать напрямую в админке
-    # readonly_fields = ('email',) # Если хочешь запретить редактирование email после создания
-
-    # Опционально: группировка полей на странице редактирования
     fieldsets = (
-        (None, {'fields': ('email', 'password')}), # Основная информация
+        (None, {'fields': ('email', 'password')}),
         ('Personal info', {'fields': ('first_name', 'last_name', 'type', 'company', 'position')}),
         ('Permissions', {'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions')}),
         ('Important dates', {'fields': ('last_login', 'date_joined')}),
@@ -45,7 +37,6 @@ class ShopAdmin(admin.ModelAdmin):
     list_display = ('name', 'url', 'user', 'state')
     list_filter = ('state', 'user')
     search_fields = ('name', 'user__email')
-    # raw_id_fields = ('user',) # Удобно, если много пользователей
 
 
 @admin.register(Category)
@@ -66,7 +57,6 @@ class ProductInfoAdmin(admin.ModelAdmin):
     list_display = ('product', 'shop', 'external_id', 'model', 'price', 'quantity')
     list_filter = ('shop', 'product__category')
     search_fields = ('product__name', 'model', 'external_id', 'shop__name')
-    # raw_id_fields = ("product", "shop") # Удобно, если много товаров/магазинов
 
 
 @admin.register(Parameter)
@@ -80,7 +70,6 @@ class ProductParameterAdmin(admin.ModelAdmin):
     list_display = ('product_info', 'parameter', 'value')
     list_filter = ('parameter', 'product_info__shop')
     search_fields = ('value', 'parameter__name', 'product_info__product__name')
-    # raw_id_fields = ("product_info", "parameter") # Удобно, если много связей
 
 
 @admin.register(Order)
@@ -88,21 +77,7 @@ class OrderAdmin(admin.ModelAdmin):
     list_display = ('id', 'user', 'dt', 'state', 'contact')
     list_filter = ('state', 'dt', 'user')
     search_fields = ('user__email', 'id', 'contact__city', 'contact__phone')
-    # raw_id_fields = ("user", "contact") # Удобно, если много пользователей/контактов
-    inlines = [OrderItemInline]  # Подключаем inline для OrderItem
-
-    # Опционально: добавить метод для отображения общей стоимости заказа
-    # def total_cost(self, obj):
-    #     # Предполагаем, что в модели Order есть метод get_total_cost()
-    #     return obj.get_total_cost()
-    # total_cost.short_description = 'Total Cost'
-
-
-# @admin.register(OrderItem) # Закомментировано, так как OrderItem теперь управляется через OrderAdmin
-# class OrderItemAdmin(admin.ModelAdmin):
-#     list_display = ('order', 'product_info', 'quantity', 'get_total_price') # Используем метод из модели
-#     list_filter = ('order__state', 'product_info__shop') # Пример фильтрации
-#     # raw_id_fields = ("order", "product_info") # Удобно, если много связей
+    inlines = [OrderItemInline]
 
 
 @admin.register(Contact)
@@ -117,5 +92,120 @@ class ConfirmEmailTokenAdmin(admin.ModelAdmin):
     list_display = ('user', 'key', 'created_at')
     list_filter = ('created_at',)
     search_fields = ('user__email', 'key')
-    # Запрещаем редактирование токена и времени создания
-    readonly_fields = ('key', 'created_at', 'user', 'created_at')
+    readonly_fields = ('key', 'created_at', 'user')
+
+
+@admin.register(ImportTask)
+class ImportTaskAdmin(admin.ModelAdmin):
+    list_display = ('id', 'uploaded_at', 'is_processed', 'products_count', 'categories_count', 'parameters_count')
+    list_filter = ('is_processed', 'uploaded_at')
+    readonly_fields = ('uploaded_at', 'is_processed', 'products_count', 'categories_count', 'parameters_count')
+    change_list_template = "admin/import_task_change_list.html"
+
+    def get_urls(self):
+        urls = super().get_urls()
+        custom_urls = [
+            path('import-yaml/', self.admin_site.admin_view(self.import_yaml_view), name='import_yaml'),
+        ]
+        return custom_urls + urls
+
+    def import_yaml_view(self, request):
+        if request.method == 'POST':
+            yaml_file = request.FILES.get('yaml_file')
+            if yaml_file:
+                try:
+                    # Читаем YAML напрямую из загруженного файла (исправлена ошибка с encoding)
+                    data = yaml.safe_load(yaml_file.read().decode('utf-8'))
+
+                    # Импортируем данные
+                    stats = self._import_data(data)
+
+                    # Создаём запись об импорте
+                    ImportTask.objects.create(
+                        yaml_file=yaml_file,
+                        is_processed=True,
+                        products_count=stats['products'],
+                        categories_count=stats['categories'],
+                        parameters_count=stats['parameters']
+                    )
+
+                    self.message_user(
+                        request,
+                        f'Импорт завершён! Создано: {stats["products"]} товаров, '
+                        f'{stats["categories"]} категорий, {stats["parameters"]} параметров.',
+                        level=messages.SUCCESS
+                    )
+                    return redirect('admin:backend_importtask_changelist')
+
+                except Exception as e:
+                    self.message_user(request, f'Ошибка импорта: {str(e)}', level=messages.ERROR)
+            else:
+                self.message_user(request, 'Файл не выбран', level=messages.ERROR)
+
+        return render(request, 'admin/import_yaml_form.html', {
+            'title': 'Импорт товаров из YAML',
+        })
+
+    def _import_data(self, data):
+        """Логика импорта данных из YAML"""
+        stats = {'products': 0, 'categories': 0, 'parameters': 0}
+
+        # Получаем или создаём магазин
+        shop_name = data.get('shop', 'Default Shop')
+        shop, _ = Shop.objects.get_or_create(name=shop_name)
+
+        # Импорт категорий
+        categories_data = data.get('categories', [])
+        categories_map = {}
+
+        for cat_data in categories_data:
+            category, created = Category.objects.get_or_create(
+                id=cat_data['id'],
+                defaults={'name': cat_data['name']}
+            )
+            if created:
+                stats['categories'] += 1
+            category.shops.add(shop)
+            categories_map[cat_data['id']] = category
+
+        # Импорт товаров
+        goods_data = data.get('goods', [])
+
+        for good in goods_data:
+            # Получаем категорию
+            category = categories_map.get(good['category'])
+            if not category:
+                continue
+
+            # Создаём или получаем продукт
+            product, _ = Product.objects.get_or_create(
+                name=good['name'],
+                defaults={'category': category}
+            )
+
+            # Создаём ProductInfo
+            product_info, _ = ProductInfo.objects.update_or_create(
+                external_id=good['id'],
+                shop=shop,
+                defaults={
+                    'product': product,
+                    'model': good.get('model', ''),
+                    'quantity': good.get('quantity', 0),
+                    'price': good.get('price', 0),
+                    'price_rrc': good.get('price_rrc', 0),
+                }
+            )
+            stats['products'] += 1
+
+            # Импорт параметров
+            parameters = good.get('parameters', {})
+            for param_name, param_value in parameters.items():
+                parameter, _ = Parameter.objects.get_or_create(name=param_name)
+                ProductParameter.objects.update_or_create(
+                    product_info=product_info,
+                    parameter=parameter,
+                    defaults={'value': str(param_value)}
+                )
+                stats['parameters'] += 1
+
+        return stats

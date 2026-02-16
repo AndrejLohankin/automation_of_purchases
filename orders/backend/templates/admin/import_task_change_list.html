@@ -1,0 +1,10 @@
+{% extends "admin/change_list.html" %}
+
+{% block object-tools %}
+    <div>
+        <a href="{% url 'admin:import_yaml' %}" class="addlink" style="background: #28a745; padding: 8px 15px; border-radius: 4px; color: white; text-decoration: none; font-weight: bold;">
+            📥 Импорт товаров из YAML
+        </a>
+    </div>
+    {{ block.super }}
+{% endblock %}

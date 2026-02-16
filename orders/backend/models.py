@@ -291,3 +291,21 @@ class ConfirmEmailToken(models.Model):
 
     def __str__(self):
         return "Password reset token for user {user}".format(user=self.user)
+
+
+class ImportTask(models.Model):
+    """Модель для отслеживания задач импорта"""
+    yaml_file = models.FileField(upload_to='imports/%Y/%m/%d/', verbose_name='YAML файл')
+    uploaded_at = models.DateTimeField(auto_now_add=True, verbose_name='Дата загрузки')
+    is_processed = models.BooleanField(default=False, verbose_name='Обработан')
+    products_count = models.PositiveIntegerField(default=0, verbose_name='Количество товаров')
+    categories_count = models.PositiveIntegerField(default=0, verbose_name='Количество категорий')
+    parameters_count = models.PositiveIntegerField(default=0, verbose_name='Количество параметров')
+
+    class Meta:
+        verbose_name = 'Импорт товаров'
+        verbose_name_plural = 'Импорт товаров'
+        ordering = ('-uploaded_at',)
+
+    def __str__(self):
+        return f"Импорт от {self.uploaded_at.strftime('%d.%m.%Y %H:%M')}"

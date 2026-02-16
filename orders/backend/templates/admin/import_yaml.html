@@ -1,0 +1,27 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block extrastyle %}{{ block.super }}<link rel="stylesheet" type="text/css" href="{% static "admin/css/forms.css" %}" />{% endblock %}
+
+{% block content %}
+<div id="content-main">
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <fieldset class="module aligned">
+            <h2>{{ title }}</h2>
+            <div class="form-row">
+                {{ form.yaml_file.label_tag }}
+                {{ form.yaml_file }}
+                {% if form.yaml_file.errors %}
+                    <p class="errornote">{{ form.yaml_file.errors }}</p>
+                {% endif %}
+                <p class="help">{{ form.yaml_file.help_text }}</p>
+            </div>
+        </fieldset>
+        <div class="submit-row">
+            <input type="submit" value="Загрузить и импортировать" class="default" name="_save">
+            <a href="../" class="button cancel">Отмена</a>
+        </div>
+    </form>
+</div>
+{% endblock %}
