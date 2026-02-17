@@ -120,7 +120,7 @@ class ImportTaskAdmin(admin.ModelAdmin):
                     # Просто сохраняем файл!
                     import_task = ImportTask.objects.create(
                         yaml_file=yaml_file,
-                        is_processed=False,
+                        is_processed=False,  # <-- False, ещё не обработан
                         products_count=0,
                         categories_count=0,
                         parameters_count=0
@@ -158,11 +158,10 @@ class ImportTaskAdmin(admin.ModelAdmin):
                 '  }})'
                 '  .then(r=>r.json())'
                 '  .then(d=>{{'
-                '    if(d.task_id){{document.getElementById("import-status-"+id).innerHTML="✅ Запущено! Перезагрузка...";'
+                '    if(d.task_id){{document.getElementById("import-status-"+id).innerHTML="✅ Запущено!";'
                 '      setTimeout(()=>location.reload(),2000);'
                 '    }}else{{document.getElementById("import-status-"+id).innerHTML="❌ "+d.error;}}'
-                '  }})'
-                '  .catch(err=>{{document.getElementById("import-status-"+id).innerHTML="❌ Ошибка соединения";}});'
+                '  }});'
                 '}}'
                 'function getCookie(name){{let v=null;if(document.cookie){{document.cookie.split(";").forEach(c=>{{if(c.trim().startsWith(name+"="))v=decodeURIComponent(c.trim().substring(name.length+1));}});}}return v;}}'
                 '</script>',

@@ -1,26 +1,33 @@
-from celery import shared_task
+# backend/tasks.py
+
+from celery import shared_task  # <-- В начало файла
 from django.core.mail import send_mail
 from django.conf import settings
-from .models import Order, ConfirmEmailToken
+from .models import Order, User, ConfirmEmailToken, ImportTask
 import yaml
-from .models import ImportTask, Shop, Category, Product, ProductInfo, Parameter, ProductParameter
 
-@shared_task
+
+@shared_task  # <-- Добавь этот декоратор
 def send_registration_confirmation_email(user_email, user_id=None):
-    """Отправляет письмо для подтверждения регистрации"""
+    """
+    Отправляет письмо для подтверждения регистрации.
+    """
+    token_instance = ConfirmEmailToken.objects.create(user_id=user_id)
+    token_key = token_instance.key
+
+    subject = 'Подтверждение регистрации на сайте'
+    message_body_text = f"""
+    Здравствуйте,
+
+    Ваш токен подтверждения: {token_key}
+
+    С уважением, Администрация сайта.
+    """
+
     try:
-        token_instance = ConfirmEmailToken.objects.create(user_id=user_id)
-        subject = 'Подтверждение регистрации на сайте'
-        message = f"""
-        Здравствуйте,
-
-        Ваш токен подтверждения: {token_instance.key}
-
-        С уважением, Администрация сайта.
-        """
         send_mail(
             subject,
-            message,
+            message_body_text,
             settings.DEFAULT_FROM_EMAIL,
             [user_email],
             fail_silently=False,
@@ -32,19 +39,21 @@ def send_registration_confirmation_email(user_email, user_id=None):
         return False
 
 
-@shared_task
+@shared_task  # <-- Добавь этот декоратор
 def send_order_confirmation_email(order_id, contact_id):
-    """Отправляет письмо с подтверждением заказа"""
+    """
+    Отправляет письмо с подтверждением заказа.
+    """
     try:
         order = Order.objects.get(id=order_id)
         subject = f'Подтверждение заказа #{order.id}'
-        message = f"""
+        message_body_text = f"""
         Ваш заказ #{order.id} подтвержден.
         Статус: {order.get_state_display()}.
         """
         send_mail(
             subject,
-            message,
+            message_body_text,
             settings.DEFAULT_FROM_EMAIL,
             [order.user.email],
             fail_silently=False,
@@ -59,7 +68,7 @@ def send_order_confirmation_email(order_id, contact_id):
         return False
 
 
-@shared_task
+@shared_task  # <-- Добавь этот декоратор
 def do_import(import_task_id):
     """Асинхронный импорт товаров из YAML"""
     from .models import Shop, Category, Product, ProductInfo, Parameter, ProductParameter
@@ -69,13 +78,15 @@ def do_import(import_task_id):
         data = yaml.safe_load(import_task.yaml_file.read().decode('utf-8'))
 
         stats = {'products': 0, 'categories': 0, 'parameters': 0}
-        shop_name = data.get('shop', 'Default')
+        shop_name = data.get('shop', 'Default Shop')
         shop, _ = Shop.objects.get_or_create(name=shop_name)
 
+        # Импорт категорий
         for cat_data in data.get('categories', []):
             Category.objects.get_or_create(id=cat_data['id'], defaults={'name': cat_data['name']})
             stats['categories'] += 1
 
+        # Импорт товаров
         for good in data.get('goods', []):
             category = Category.objects.get(id=good['category'])
             product, _ = Product.objects.get_or_create(name=good['name'], defaults={'category': category})
