@@ -47,10 +47,10 @@ class RegisterView(APIView):
         if serializer.is_valid():
             user = serializer.save()
             # --- НОВЫЙ КОД ---
-            # Вызываем функцию отправки email подтверждения
+            # Запускаем задачу на отправку email подтверждения через Celery
             from .tasks import send_registration_confirmation_email
-            success = send_registration_confirmation_email(user.email, user.id)
-            if success:
+            task = send_registration_confirmation_email.delay(user.email, user.id)
+            if task:
                 message = 'Пользователь успешно зарегистрирован. Проверьте ваш email для подтверждения.'
             else:
                 message = 'Пользователь успешно зарегистрирован, но письмо подтверждения не было отправлено.'
@@ -221,9 +221,9 @@ class OrderConfirmationView(APIView):
             basket.save()
 
             # --- НОВЫЙ КОД ---
-            # Запускаем задачу на отправку email
+            # Запускаем задачу на отправку email через Celery
             from .tasks import send_order_confirmation_email
-            send_order_confirmation_email(basket.id, contact.id)
+            task = send_order_confirmation_email.delay(basket.id, contact.id)
             # ----------------
 
             return Response({'message': 'Заказ подтвержден. Информация продублирована на Вашу почту.'}, status=status.HTTP_200_OK)

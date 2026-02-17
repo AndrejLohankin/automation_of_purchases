@@ -11,10 +11,10 @@ POST {{baseUrl}}/register/
 Content-Type: application/json
 
 {
-    "first_name": "Test",
-    "last_name": "User",
-    "email": "testuser@example.com",
-    "password": "securepassword123"
+    "first_name": "Test3",
+    "last_name": "User3",
+    "email": "testuser@example3.com",
+    "password": "securepassword1233"
 }
 
 
@@ -25,8 +25,8 @@ POST {{baseUrl}}/login/
 Content-Type: application/json
 
 {
-    "email": "testuser@example.com",
-    "password": "securepassword123"
+    "email": "testuser@example3.com",
+    "password": "securepassword1233"
 }
 
 
@@ -70,7 +70,7 @@ Content-Type: application/json
 {
     "city": "Moscow",
     "street": "Tverskaya",
-    "house": "1",
+    "house": "3",
     "phone": "+71234567890"
 }
 
@@ -84,8 +84,8 @@ POST {{baseUrl}}/orders/confirm/
 Content-Type: application/json
 
 {
-    "basket_id": 1,
-    "contact_id": 1
+    "basket_id": 5,
+    "contact_id": 2
 }
 
 
