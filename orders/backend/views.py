@@ -361,4 +361,60 @@ class ContactDetailView(generics.RetrieveAPIView):
         contact_id = self.kwargs.get('contact_id')
         return get_object_or_404(self.get_queryset(), id=contact_id)
 
+
 # --- КОНЕЦ НОВОГО КОДА ---
+
+# --- УЛУЧШЕННЫЙ КОД ДЛЯ УДАЛЕНИЯ ТОВАРОВ ---
+
+class BatchDeleteCartItemView(APIView):
+    """
+    Удалить несколько товаров из корзины одновременно.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        """
+        Удалить несколько товаров из корзины.
+
+        Пример запроса:
+        {
+            "order_item_ids": [3, 5, 7]
+        }
+        """
+        cart = get_object_or_404(Order, user=request.user, state='basket')
+        order_item_ids = request.data.get('order_item_ids')
+
+        if not order_item_ids or not isinstance(order_item_ids, list):
+            return Response({'error': 'order_item_ids должен быть списком ID'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Удаляем все указанные товары
+        deleted_count = OrderItem.objects.filter(
+            order=cart,
+            id__in=order_item_ids
+        ).delete()[0]
+
+        return Response({
+            'message': f'Удалено {deleted_count} товаров из корзины',
+            'deleted_count': deleted_count
+        }, status=status.HTTP_200_OK)
+
+
+class ClearCartView(APIView):
+    """
+    Очистить всю корзину.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request):
+        """
+        Удалить все товары из корзины.
+        """
+        cart = get_object_or_404(Order, user=request.user, state='basket')
+
+        # Удаляем все товары из корзины
+        deleted_count = cart.ordered_items.all().delete()[0]
+
+        return Response({
+            'message': f'Корзина очищена. Удалено {deleted_count} товаров',
+            'deleted_count': deleted_count
+        }, status=status.HTTP_200_OK)

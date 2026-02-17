@@ -18,6 +18,10 @@ urlpatterns = [
     # --- НОВЫЕ ПУТИ ---
     path('cart/delete/', views.DeleteCartItemView.as_view(), name='cart-delete'),
     path('contacts/detailed/', views.DetailedContactListView.as_view(), name='contacts-detailed'),
-    path('contacts/<int:contact_id>/', views.ContactDetailView.as_view(), name='contact-detail'),
+    path('contacts/<int:contact_id/', views.ContactDetailView.as_view(), name='contact-detail'),
     # --- КОНЕЦ НОВЫХ ПУТЕЙ ---
+    # --- НОВЫЕ ПУТИ ДЛЯ УДАЛЕНИЯ ---
+    path('cart/delete-batch/', views.BatchDeleteCartItemView.as_view(), name='cart-delete-batch'),
+    path('cart/clear/', views.ClearCartView.as_view(), name='cart-clear'),
+    # --- КОНЕЦ НОВЫХ ПУТЕЙ ДЛЯ УДАЛЕНИЯ ---
 ]

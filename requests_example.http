@@ -50,7 +50,7 @@ Content-Type: application/json
 # Куки автоматически подставляются из cookie_jar
 
 {
-    "product_info_id": 3,
+    "product_info_id": 6,
     "quantity": 2
 }
 
@@ -101,7 +101,10 @@ Accept: application/json
 ### --- Удаление товара из корзины ---
 # DELETE /api/v1/cart/delete/
 # Удаляет товар из корзины по ID
-DELETE {{baseUrl}}/cart/delete/?order_item_id=9
+DELETE {{baseUrl}}/cart/delete/?order_item_id=12
+# Куки автоматически подставляются из cookie_jar
+
+
 
 
 ### --- Детальный просмотр контактов ---
@@ -110,9 +113,33 @@ DELETE {{baseUrl}}/cart/delete/?order_item_id=9
 GET {{baseUrl}}/contacts/detailed/
 Accept: application/json
 
+?city=Moscow&phone=+71234567890
+
 
 ### --- Просмотр конкретного контакта ---
 # GET /api/v1/contacts/{contact_id}/
 # Получает детальную информацию о конкретном контакте
 GET {{baseUrl}}/contacts/2/
 Accept: application/json
+
+
+### --- УЛУЧШЕННЫЕ ФУНКЦИИ УДАЛЕНИЯ ИЗ КОРЗИНЫ ---
+
+
+### --- Удаление нескольких товаров из корзины ---
+# POST /api/v1/cart/delete-batch/
+# Удаляет несколько товаров из корзины одновременно
+POST {{baseUrl}}/cart/delete-batch/
+Content-Type: application/json
+# Куки автоматически подставляются из cookie_jar
+
+{
+    "order_item_ids": [13, 14]
+}
+
+
+### --- Очистка всей корзины ---
+# DELETE /api/v1/cart/clear/
+# Удаляет все товары из корзины
+DELETE {{baseUrl}}/cart/clear/
+# Куки автоматически подставляются из cookie_jar
