@@ -13,7 +13,7 @@ from .serializers import (
     OrderHistorySerializer
 )
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAdminUser
+from rest_framework.permissions import IsAdminUser, AllowAny
 from rest_framework.response import Response
 from .tasks import do_import
 from .models import ImportTask
@@ -234,16 +234,36 @@ class OrderConfirmationView(APIView):
 
 
 class OrderHistoryView(generics.ListAPIView):
-    """
-    История заказов пользователя.
-    """
+    """История заказов пользователя."""
     serializer_class = OrderHistorySerializer
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        # Возвращаем все заказы пользователя, кроме корзины
+        """Возвращаем все заказы пользователя, кроме корзины."""
         return Order.objects.filter(user=self.request.user).exclude(state='basket').order_by('-dt')
 
+    def get(self, request):
+        """Получить историю заказов с фильтрацией."""
+        orders = self.get_queryset()
+
+        # Фильтрация по статусу
+        status = request.query_params.get('status')
+        if status:
+            orders = orders.filter(state=status)
+
+        # Фильтрация по периоду
+        start_date = request.query_params.get('start_date')
+        end_date = request.query_params.get('end_date')
+        if start_date:
+            orders = orders.filter(dt__gte=start_date)
+        if end_date:
+            orders = orders.filter(dt__lte=end_date)
+
+        serializer = OrderHistorySerializer(orders, many=True)
+        return Response({
+            'orders': serializer.data,
+            'total': orders.count()
+        })
 
 class ContactListView(generics.ListAPIView):
     """
@@ -418,3 +438,43 @@ class ClearCartView(APIView):
             'message': f'Корзина очищена. Удалено {deleted_count} товаров',
             'deleted_count': deleted_count
         }, status=status.HTTP_200_OK)
+
+class DeleteContactView(APIView):
+    """Удалить контакт по ID."""
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request):
+        """Удалить контакт."""
+        contact_id = request.query_params.get('contact_id')
+        if not contact_id:
+            return Response({'error': 'contact_id обязателен'}, status=status.HTTP_400_BAD_REQUEST)
+
+        contact = get_object_or_404(Contact, id=contact_id, user=request.user)
+        contact.delete()
+        return Response({'message': 'Контакт удален'}, status=status.HTTP_200_OK)
+
+class OrderDetailView(generics.RetrieveAPIView):
+    """Получить детальную информацию о конкретном заказе."""
+    serializer_class = OrderHistorySerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        """Возвращаем только заказы текущего пользователя."""
+        return Order.objects.filter(user=self.request.user).exclude(state='basket')
+
+    def get_object(self):
+        order_id = self.kwargs.get('order_id')
+        return get_object_or_404(self.get_queryset(), id=order_id)
+
+class ProductSpecificationView(generics.RetrieveAPIView):
+    """Получить спецификацию по отдельному товару."""
+    serializer_class = ProductInfoSerializer
+    permission_classes = [AllowAny]  # Для неавторизованных пользователей
+
+    def get_queryset(self):
+        """Возвращаем все товары."""
+        return ProductInfo.objects.select_related('product', 'shop').prefetch_related('product_parameters__parameter')
+
+    def get_object(self):
+        product_info_id = self.kwargs.get('product_info_id')
+        return get_object_or_404(self.get_queryset(), id=product_info_id)

@@ -140,12 +140,24 @@ class OrderConfirmationSerializer(serializers.Serializer):
 class OrderHistorySerializer(serializers.ModelSerializer):
     ordered_items = OrderItemSerializer(many=True, read_only=True)
     total_price = serializers.SerializerMethodField()
+    contact_info = serializers.SerializerMethodField()  # Добавляем информацию о контакте
 
     class Meta:
         model = Order
-        fields = ('id', 'dt', 'state', 'ordered_items', 'total_price')
+        fields = ('id', 'dt', 'state', 'ordered_items', 'total_price', 'contact_info')
 
     def get_total_price(self, obj):
-        # Рассчитываем общую стоимость заказа
+        """Рассчитываем общую стоимость заказа."""
         total = sum(item.get_total_price() for item in obj.ordered_items.all())
         return total
+
+    def get_contact_info(self, obj):
+        """Возвращаем информацию о контакте."""
+        if obj.contact:
+            return {
+                'city': obj.contact.city,
+                'street': obj.contact.street,
+                'house': obj.contact.house,
+                'phone': obj.contact.phone
+            }
+        return None

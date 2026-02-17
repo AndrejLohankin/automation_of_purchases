@@ -38,7 +38,7 @@ Accept: application/json
 
 ### --- Фильтрация списка товаров ---
 # GET /api/v1/products/?search=название_товара
-GET {{baseUrl}}/products/?search=Название
+GET {{baseUrl}}/products/?search=Смартфон
 Accept: application/json
 
 
@@ -84,8 +84,8 @@ POST {{baseUrl}}/orders/confirm/
 Content-Type: application/json
 
 {
-    "basket_id": 5,
-    "contact_id": 2
+    "basket_id": 6,
+    "contact_id": 3
 }
 
 
@@ -112,8 +112,6 @@ DELETE {{baseUrl}}/cart/delete/?order_item_id=12
 # Получает детальный список контактов с фильтрацией
 GET {{baseUrl}}/contacts/detailed/
 Accept: application/json
-
-?city=Moscow&phone=+71234567890
 
 
 ### --- Просмотр конкретного контакта ---
@@ -143,3 +141,22 @@ Content-Type: application/json
 # Удаляет все товары из корзины
 DELETE {{baseUrl}}/cart/clear/
 # Куки автоматически подставляются из cookie_jar
+
+### --- Удаление контакта ---
+# DELETE /api/v1/contacts/delete/
+# Удаляет контакт по ID
+DELETE {{baseUrl}}/contacts/delete/?contact_id=2
+# Куки автоматически подставляются из cookie_jar
+
+
+### --- Детали заказа ---
+# GET /api/v1/orders/{order_id}/
+# Получает детальную информацию о заказе
+GET {{baseUrl}}/orders/6/
+Accept: application/json
+
+### --- Спецификация товара ---
+# GET /api/v1/products/{product_info_id}/
+# Получает спецификацию товара
+GET {{baseUrl}}/products/6/
+Accept: application/json
