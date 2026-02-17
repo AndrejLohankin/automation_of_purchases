@@ -15,4 +15,9 @@ urlpatterns = [
     path('admin/trigger-import/', views.trigger_import, name='trigger-import'),
     # path('shops/', views.ShopListView.as_view(), name='shop-list'), # Если нужно
     # path('categories/', views.CategoryListView.as_view(), name='category-list'), # Если нужно
+    # --- НОВЫЕ ПУТИ ---
+    path('cart/delete/', views.DeleteCartItemView.as_view(), name='cart-delete'),
+    path('contacts/detailed/', views.DetailedContactListView.as_view(), name='contacts-detailed'),
+    path('contacts/<int:contact_id>/', views.ContactDetailView.as_view(), name='contact-detail'),
+    # --- КОНЕЦ НОВЫХ ПУТЕЙ ---
 ]

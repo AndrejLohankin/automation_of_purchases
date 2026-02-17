@@ -18,6 +18,7 @@ from rest_framework.response import Response
 from .tasks import do_import
 from .models import ImportTask
 
+
 class LoginView(APIView):
     """
     Вход пользователя.
@@ -42,6 +43,7 @@ class RegisterView(APIView):
     """
     Регистрация пользователя.
     """
+
     def post(self, request):
         serializer = UserRegistrationSerializer(data=request.data)
         if serializer.is_valid():
@@ -216,7 +218,7 @@ class OrderConfirmationView(APIView):
             contact = serializer.validated_data['contact_id']
 
             # Обновляем статус корзины
-            basket.state = 'confirmed' # или 'new', как у тебя принято
+            basket.state = 'confirmed'  # или 'new', как у тебя принято
             basket.contact = contact
             basket.save()
 
@@ -226,7 +228,8 @@ class OrderConfirmationView(APIView):
             task = send_order_confirmation_email.delay(basket.id, contact.id)
             # ----------------
 
-            return Response({'message': 'Заказ подтвержден. Информация продублирована на Вашу почту.'}, status=status.HTTP_200_OK)
+            return Response({'message': 'Заказ подтвержден. Информация продублирована на Вашу почту.'},
+                            status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -240,6 +243,7 @@ class OrderHistoryView(generics.ListAPIView):
     def get_queryset(self):
         # Возвращаем все заказы пользователя, кроме корзины
         return Order.objects.filter(user=self.request.user).exclude(state='basket').order_by('-dt')
+
 
 class ContactListView(generics.ListAPIView):
     """
@@ -282,3 +286,79 @@ def trigger_import(request):
         return Response({'error': 'ImportTask not found'}, status=404)
     except Exception as e:
         return Response({'error': str(e)}, status=500)
+
+
+# --- НОВЫЙ КОД ---
+
+class DeleteCartItemView(APIView):
+    """
+    Удалить товар из корзины по ID.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request):
+        """
+        Удалить товар из корзины.
+        """
+        cart = get_object_or_404(Order, user=request.user, state='basket')
+        order_item_id = request.query_params.get('order_item_id')
+
+        if not order_item_id:
+            return Response({'error': 'order_item_id обязателен'}, status=status.HTTP_400_BAD_REQUEST)
+
+        order_item = get_object_or_404(OrderItem, id=order_item_id, order=cart)
+        order_item.delete()
+        return Response({'message': 'Товар удален из корзины'}, status=status.HTTP_200_OK)
+
+
+class DetailedContactListView(generics.ListAPIView):
+    """
+    Получить детальную информацию о контактах пользователя.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        # Возвращаем только контакты текущего аутентифицированного пользователя
+        user = self.request.user
+        return Contact.objects.filter(user=user)
+
+    def get(self, request):
+        """
+        Получить детальный список контактов с возможностью фильтрации.
+        """
+        contacts = self.get_queryset()
+
+        # Фильтрация по городу
+        city = request.query_params.get('city')
+        if city:
+            contacts = contacts.filter(city__icontains=city)
+
+        # Фильтрация по телефону
+        phone = request.query_params.get('phone')
+        if phone:
+            contacts = contacts.filter(phone__icontains=phone)
+
+        serializer = AddContactSerializer(contacts, many=True)
+        return Response({
+            'contacts': serializer.data,
+            'total': contacts.count()
+        })
+
+
+class ContactDetailView(generics.RetrieveAPIView):
+    """
+    Получить детальную информацию о конкретном контакте.
+    """
+    serializer_class = AddContactSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        # Возвращаем только контакты текущего аутентифицированного пользователя
+        user = self.request.user
+        return Contact.objects.filter(user=user)
+
+    def get_object(self):
+        contact_id = self.kwargs.get('contact_id')
+        return get_object_or_404(self.get_queryset(), id=contact_id)
+
+# --- КОНЕЦ НОВОГО КОДА ---

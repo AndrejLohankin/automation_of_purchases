@@ -38,7 +38,7 @@ Accept: application/json
 
 ### --- Фильтрация списка товаров ---
 # GET /api/v1/products/?search=название_товара
-GET {{baseUrl}}/products/?search=Смартфон
+GET {{baseUrl}}/products/?search=Название
 Accept: application/json
 
 
@@ -92,4 +92,27 @@ Content-Type: application/json
 ### --- История заказов ---
 # GET /api/v1/orders/history/
 GET {{baseUrl}}/orders/history/
+Accept: application/json
+
+
+### --- НОВЫЕ ФУНКЦИИ АПИИ ---
+
+
+### --- Удаление товара из корзины ---
+# DELETE /api/v1/cart/delete/
+# Удаляет товар из корзины по ID
+DELETE {{baseUrl}}/cart/delete/?order_item_id=9
+
+
+### --- Детальный просмотр контактов ---
+# GET /api/v1/contacts/detailed/
+# Получает детальный список контактов с фильтрацией
+GET {{baseUrl}}/contacts/detailed/
+Accept: application/json
+
+
+### --- Просмотр конкретного контакта ---
+# GET /api/v1/contacts/{contact_id}/
+# Получает детальную информацию о конкретном контакте
+GET {{baseUrl}}/contacts/2/
 Accept: application/json
