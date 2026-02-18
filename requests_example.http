@@ -160,3 +160,22 @@ Accept: application/json
 # Получает спецификацию товара
 GET {{baseUrl}}/products/6/
 Accept: application/json
+
+### --- УПРАВЛЕНИЕ СТАТУСОМ ЗАКАЗА ---
+
+### --- Изменение статуса заказа ---
+# POST /api/v1/admin/orders/{order_id}/status/
+# Изменяет статус заказа (только для администраторов)
+POST {{baseUrl}}/admin/orders/123/status/
+Content-Type: application/json
+# Куки автоматически подставляются из cookie_jar
+
+{
+    "status": "confirmed"
+}
+
+### --- Список всех заказов для администратора ---
+# GET /api/v1/admin/orders/
+# Получает список всех заказов с фильтрацией (только для администраторов)
+GET {{baseUrl}}/admin/orders/
+Accept: application/json
