@@ -31,5 +31,6 @@ urlpatterns = [
     path('cart/delete-batch/', views.BatchDeleteCartItemView.as_view(), name='cart-delete-batch'),
     path('cart/clear/', views.ClearCartView.as_view(), name='cart-clear'),
     path('contacts/delete/', views.DeleteContactView.as_view(), name='contact-delete'),
-    # --- КОНЕЦ НОВЫХ ПУТЕЙ ДЛЯ УДАЛЕНИЯ ---
+    # --- НОВЫЕ ПУТИ ДЛЯ УПРАВЛЕНИЯ ЗАКАЗАМИ ---
+    path('orders/<int:order_id>/status/', views.OrderStatusUpdateView.as_view(), name='order-status-update'),
 ]

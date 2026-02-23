@@ -17,7 +17,6 @@ Content-Type: application/json
     "password": "securepassword1233"
 }
 
-
 ### --- Вход ---
 # POST /api/v1/login/
 # Использует куки для аутентификации в последующих запросах
@@ -29,18 +28,15 @@ Content-Type: application/json
     "password": "securepassword1233"
 }
 
-
 ### --- Список товаров ---
 # GET /api/v1/products/
 GET {{baseUrl}}/products/
 Accept: application/json
 
-
 ### --- Фильтрация списка товаров ---
 # GET /api/v1/products/?search=название_товара
 GET {{baseUrl}}/products/?search=Смартфон
 Accept: application/json
-
 
 ### --- Добавление товара в корзину ---
 # POST /api/v1/basket/
@@ -54,12 +50,10 @@ Content-Type: application/json
     "quantity": 2
 }
 
-
 ### --- Просмотр корзины ---
 # GET /api/v1/basket/
 GET {{baseUrl}}/basket/
 Accept: application/json
-
 
 ### --- Добавление контакта ---
 # POST /api/v1/contacts/
@@ -74,7 +68,6 @@ Content-Type: application/json
     "phone": "+71234567890"
 }
 
-
 ### --- Подтверждение заказа ---
 # POST /api/v1/orders/confirm/
 # Замените basket_id и contact_id на реальные ID
@@ -88,15 +81,10 @@ Content-Type: application/json
     "contact_id": 3
 }
 
-
 ### --- История заказов ---
 # GET /api/v1/orders/history/
 GET {{baseUrl}}/orders/history/
 Accept: application/json
-
-
-### --- НОВЫЕ ФУНКЦИИ АПИИ ---
-
 
 ### --- Удаление товара из корзины ---
 # DELETE /api/v1/cart/delete/
@@ -104,25 +92,17 @@ Accept: application/json
 DELETE {{baseUrl}}/cart/delete/?order_item_id=12
 # Куки автоматически подставляются из cookie_jar
 
-
-
-
 ### --- Детальный просмотр контактов ---
 # GET /api/v1/contacts/detailed/
 # Получает детальный список контактов с фильтрацией
 GET {{baseUrl}}/contacts/detailed/
 Accept: application/json
 
-
 ### --- Просмотр конкретного контакта ---
 # GET /api/v1/contacts/{contact_id}/
 # Получает детальную информацию о конкретном контакте
 GET {{baseUrl}}/contacts/2/
 Accept: application/json
-
-
-### --- УЛУЧШЕННЫЕ ФУНКЦИИ УДАЛЕНИЯ ИЗ КОРЗИНЫ ---
-
 
 ### --- Удаление нескольких товаров из корзины ---
 # POST /api/v1/cart/delete-batch/
@@ -134,7 +114,6 @@ Content-Type: application/json
 {
     "order_item_ids": [13, 14]
 }
-
 
 ### --- Очистка всей корзины ---
 # DELETE /api/v1/cart/clear/
@@ -148,7 +127,6 @@ DELETE {{baseUrl}}/cart/clear/
 DELETE {{baseUrl}}/contacts/delete/?contact_id=2
 # Куки автоматически подставляются из cookie_jar
 
-
 ### --- Детали заказа ---
 # GET /api/v1/orders/{order_id}/
 # Получает детальную информацию о заказе
@@ -160,3 +138,13 @@ Accept: application/json
 # Получает спецификацию товара
 GET {{baseUrl}}/products/6/
 Accept: application/json
+
+### --- Редактирование статуса заказа ---
+# PUT /api/v1/orders/{order_id}/status/
+# Изменяет статус заказа (только для администраторов)
+PUT {{baseUrl}}/orders/6/status/
+Content-Type: application/json
+
+{
+    "state": "delivered"
+}

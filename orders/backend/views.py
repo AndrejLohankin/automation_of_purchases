@@ -10,7 +10,7 @@ from .models import Shop, Category, Product, ProductInfo, Order, OrderItem, Cont
 from .serializers import (
     UserLoginSerializer, UserRegistrationSerializer, ProductInfoSerializer,
     CartItemSerializer, AddContactSerializer, OrderConfirmationSerializer,
-    OrderHistorySerializer
+    OrderHistorySerializer, OrderStatusUpdateSerializer
 )
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAdminUser, AllowAny
@@ -478,3 +478,34 @@ class ProductSpecificationView(generics.RetrieveAPIView):
     def get_object(self):
         product_info_id = self.kwargs.get('product_info_id')
         return get_object_or_404(self.get_queryset(), id=product_info_id)
+
+
+# --- НОВЫЙ КОД ДЛЯ РЕДАКТИРОВАНИЯ СТАТУСА ЗАКАЗА ---
+
+class OrderStatusUpdateView(APIView):
+    """
+    Обновление статуса заказа (только для администраторов).
+    """
+    permission_classes = [IsAdminUser]
+
+    def put(self, request, order_id):
+        """
+        Обновить статус заказа.
+        """
+        order = get_object_or_404(Order, id=order_id)
+
+        serializer = OrderStatusUpdateSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        new_state = serializer.validated_data['state']
+
+        # Обновляем статус заказа
+        order.state = new_state
+        order.save()
+
+        return Response({
+            'message': f'Статус заказа обновлен на: {order.get_state_display()}',
+            'order_id': order.id,
+            'new_state': new_state,
+            'new_state_display': order.get_state_display()
+        }, status=status.HTTP_200_OK)

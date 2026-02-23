@@ -2,7 +2,7 @@
 
 from rest_framework import serializers
 from django.contrib.auth import authenticate
-from .models import User, Shop, Category, Product, ProductInfo, Parameter, ProductParameter, Order, OrderItem, Contact
+from .models import User, Shop, Category, Product, ProductInfo, Parameter, ProductParameter, Order, OrderItem, Contact, STATE_CHOICES
 
 
 class UserLoginSerializer(serializers.Serializer):
@@ -161,3 +161,15 @@ class OrderHistorySerializer(serializers.ModelSerializer):
                 'phone': obj.contact.phone
             }
         return None
+
+
+# --- НОВЫЙ КОД ДЛЯ РЕДАКТИРОВАНИЯ СТАТУСА ЗАКАЗА ---
+
+class OrderStatusUpdateSerializer(serializers.Serializer):
+    state = serializers.ChoiceField(choices=STATE_CHOICES, required=True)
+
+    def validate_state(self, value):
+        """Проверяем, что статус является допустимым"""
+        if value not in dict(STATE_CHOICES):
+            raise serializers.ValidationError(f"Недопустимый статус: {value}")
+        return value
