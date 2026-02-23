@@ -13,7 +13,7 @@ python manage.py load_db ../data/shop1.yaml
 
 docker-compose up -d --build
 docker-compose logs -f celery_worker
-docker-compose logs -f django
 docker-compose down
 
-@Entire codebase
+git reset --hard HEAD~1
+git push --force origin имя_ветки

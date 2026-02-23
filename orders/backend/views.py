@@ -17,7 +17,10 @@ from rest_framework.permissions import IsAdminUser, AllowAny
 from rest_framework.response import Response
 from .tasks import do_import
 from .models import ImportTask
-
+import yaml
+from datetime import datetime
+from django.http import StreamingHttpResponse
+import io
 
 class LoginView(APIView):
     """
@@ -509,3 +512,144 @@ class OrderStatusUpdateView(APIView):
             'new_state': new_state,
             'new_state_display': order.get_state_display()
         }, status=status.HTTP_200_OK)
+
+
+class ProductExportView(APIView):
+    permission_classes = [IsAdminUser]
+
+    def get(self, request):
+        try:
+            # Получаем все товары с информацией
+            products = ProductInfo.objects.select_related('product', 'shop').prefetch_related(
+                'product_parameters__parameter'
+            )
+
+            # Создаем структуру данных для экспорта
+            export_data = {
+                'shop': 'Default Shop',
+                'categories': [],
+                'goods': []
+            }
+
+            # Собираем уникальные категории
+            categories_set = set()
+            for product_info in products:
+                if product_info.product.category:
+                    categories_set.add(product_info.product.category)
+
+            # Добавляем категории
+            for category in categories_set:
+                export_data['categories'].append({
+                    'id': category.id,
+                    'name': category.name
+                })
+
+            # Добавляем товары
+            for product_info in products:
+                # Собираем параметры товара
+                parameters = {}
+                for param in product_info.product_parameters.all():
+                    parameters[param.parameter.name] = param.value
+
+                export_data['goods'].append({
+                    'id': product_info.external_id,
+                    'name': product_info.product.name,
+                    'category': product_info.product.category.id if product_info.product.category else None,
+                    'quantity': product_info.quantity,
+                    'price': product_info.price,
+                    'parameters': parameters
+                })
+
+            # Конвертируем в YAML с правильными отступами
+            yaml_data = yaml.dump(export_data, sort_keys=False, indent=2)
+
+            # Создаем поток для файла
+            stream = io.StringIO()
+            stream.write(yaml_data)
+            stream.seek(0)
+
+            # Возвращаем как файл
+            response = StreamingHttpResponse(
+                stream,
+                content_type='application/x-yaml; charset=utf-8'
+            )
+            response['Content-Disposition'] = f'attachment; filename="export_{datetime.now().strftime("%Y%m%d_%H%M%S")}.yaml"'
+
+            return response
+
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['POST'])
+@permission_classes([IsAdminUser])
+def export_products(request):
+    try:
+        shop_id = request.data.get('shop_id')
+        category_id = request.data.get('category_id')
+
+        # Фильтруем товары
+        queryset = ProductInfo.objects.select_related('product', 'shop').prefetch_related(
+            'product_parameters__parameter'
+        )
+
+        if shop_id:
+            queryset = queryset.filter(shop_id=shop_id)
+        if category_id:
+            queryset = queryset.filter(product__category_id=category_id)
+
+        # Создаем структуру данных для экспорта
+        export_data = {
+            'shop': 'Default Shop',
+            'categories': [],
+            'goods': []
+        }
+
+        # Собираем уникальные категории
+        categories_set = set()
+        for product_info in queryset:
+            if product_info.product.category:
+                categories_set.add(product_info.product.category)
+
+        # Добавляем категории
+        for category in categories_set:
+            export_data['categories'].append({
+                'id': category.id,
+                'name': category.name
+            })
+
+        # Добавляем товары
+        for product_info in queryset:
+            # Собираем параметры товара
+            parameters = {}
+            for param in product_info.product_parameters.all():
+                parameters[param.parameter.name] = param.value
+
+            export_data['goods'].append({
+                'id': product_info.external_id,
+                'name': product_info.product.name,
+                'category': product_info.product.category.id if product_info.product.category else None,
+                'quantity': product_info.quantity,
+                'price': product_info.price,
+                'parameters': parameters
+            })
+
+        # Конвертируем в YAML
+        yaml_data = yaml.dump(export_data, sort_keys=False)
+
+        # Создаем поток для файла
+        stream = io.StringIO()
+        stream.write(yaml_data)
+        stream.seek(0)
+
+        # Возвращаем как файл
+        response = StreamingHttpResponse(
+            stream,
+            content_type='application/x-yaml; charset=utf-8'
+        )
+        response['Content-Disposition'] = f'attachment; filename="filtered_export_{datetime.now().strftime("%Y%m%d_%H%M%S")}.yaml"'
+
+        return response
+
+    except Exception as e:
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

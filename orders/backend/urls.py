@@ -24,7 +24,8 @@ urlpatterns = [
     # --- НОВЫЕ ПУТИ ---
     path('cart/delete/', views.DeleteCartItemView.as_view(), name='cart-delete'),
     path('contacts/detailed/', views.DetailedContactListView.as_view(), name='contacts-detailed'),
-
+    path('products/export/', views.ProductExportView.as_view(), name='product-export'),
+    path('products/export/filtered/', views.export_products, name='product-export-filtered'),
     # --- КОНЕЦ НОВЫХ ПУТЕЙ ---
 
     # --- НОВЫЕ ПУТИ ДЛЯ УДАЛЕНИЯ ---

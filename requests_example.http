@@ -28,6 +28,17 @@ Content-Type: application/json
     "password": "securepassword1233"
 }
 
+### --- Вход ---
+# POST /api/v1/login/
+# Использует куки для аутентификации в последующих запросах
+POST {{baseUrl}}/login/
+Content-Type: application/json
+
+{
+    "email": "2@mail.ru",
+    "password": "brigbrig"
+}
+
 ### --- Список товаров ---
 # GET /api/v1/products/
 GET {{baseUrl}}/products/
@@ -147,4 +158,48 @@ Content-Type: application/json
 
 {
     "state": "delivered"
+}
+
+### --- экспорт товаров ---
+GET {{baseUrl}}/products/export/
+
+### --- экспорт товаров с фильтрацией ---
+POST {{baseUrl}}/products/export/filtered/
+Content-Type: application/json
+
+{
+    "shop_id": 1,
+    "category_id": 15
+}
+
+### --- экспорт товаров по нескольким магазинам ---
+
+POST {{baseUrl}}/products/export/filtered/
+Content-Type: application/json
+
+{
+    "shop_ids": [1, 2, 3],
+    "category_id": 101
+}
+
+### --- экспорт товаров по нескольким категориям ---
+POST {{baseUrl}}/products/export/filtered/
+Content-Type: application/json
+
+{
+    "shop_id": 1,
+    "category_ids": [101, 102, 103]
+}
+
+### --- экспорт товаров с параметрами ---
+POST {{baseUrl}}/products/export/filtered/
+Content-Type: application/json
+
+{
+    "shop_id": 1,
+    "category_id": 224,
+    "parameters": {
+        "Цвет": "черный",
+        "Диагональ (дюйм)": "6.1"
+    }
 }
