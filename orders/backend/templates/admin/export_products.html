@@ -1,0 +1,38 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_urls %}
+
+{% block content %}
+<div class="module">
+    <h2>{{ title }}</h2>
+    <form method="post" action="/admin/backend/productinfo/export/">
+        {% csrf_token %}
+        <div>
+            <label for="shop_id">Магазин:</label>
+            <select name="shop_id" id="shop_id">
+                <option value="">Все магазины</option>
+                {% for shop in shops %}
+                <option value="{{ shop.id }}">{{ shop.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label for="category_id">Категория:</label>
+            <select name="category_id" id="category_id">
+                <option value="">Все категории</option>
+                {% for category in categories %}
+                <option value="{{ category.id }}">{{ category.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label>
+                <input type="checkbox" name="export_all" value="1">
+                Экспортировать все товары (без фильтрации)
+            </label>
+        </div>
+        <div>
+            <button type="submit" class="button">Экспортировать</button>
+        </div>
+    </form>
+</div>
+{% endblock %}
