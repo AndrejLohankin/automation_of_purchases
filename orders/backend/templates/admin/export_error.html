@@ -1,0 +1,14 @@
+{% extends "admin/base_site.html" %}
+
+{% block content %}
+<div class="module">
+    <h2>Export Error</h2>
+    <div class="errornote">
+        <p>{{ error }}</p>
+        <p>Supported formats: {% for fmt in formats %}{{ fmt }}{% if not forloop.last %}, {% endif %}{% endfor %}</p>
+    </div>
+    <p>
+        <a href="{% url 'admin:backend_productinfo_changelist' %}" class="button">Back to Product List</a>
+    </p>
+</div>
+{% endblock %}
