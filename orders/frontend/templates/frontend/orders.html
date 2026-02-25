@@ -1,0 +1,94 @@
+{% extends 'frontend/base.html' %}
+
+{% block title %}Мои заказы{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Мои заказы</h2>
+    <a href="{% url 'products' %}" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-left"></i> Продолжить покупки
+    </a>
+</div>
+
+{% if orders %}
+<div class="row">
+    {% for order in orders %}
+    <div class="col-md-6 mb-4">
+        <div class="card h-100 order-card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                        <h5 class="card-title">Заказ #{{ order.id }}</h5>
+                        <p class="text-muted small">{{ order.dt|date:"d.m.Y H:i" }}</p>
+                    </div>
+                    <span class="badge bg-primary">{{ order.get_state_display }}</span>
+                </div>
+                
+                <div class="mb-3">
+                    <h6>Контакт для доставки:</h6>
+                    <p>
+                        {{ order.contact.city }}, {{ order.contact.street }}, {{ order.contact.house }}<br>
+                        {{ order.contact.phone }}
+                    </p>
+                </div>
+                
+                <div class="mb-3">
+                    <h6>Состав заказа:</h6>
+                    {% for item in order.ordered_items.all %}
+                    <div class="d-flex justify-content-between">
+                        <small>{{ item.product_info.product.name }} (x{{ item.quantity }})</small>
+                        <small>{{ item.quantity|mul:item.product_info.price }} ₽</small>
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="text-primary">Итого: {{ order.total_price }} ₽</h5>
+                    <a href="{% url 'order_detail' order.id %}" class="btn btn-outline-primary btn-sm">Подробнее</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+{% if orders.has_other_pages %}
+<nav aria-label="Page navigation">
+    <ul class="pagination justify-content-center">
+        {% if orders.has_previous %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ orders.previous_page_number }}">Предыдущая</a>
+        </li>
+        {% endif %}
+        
+        {% for num in orders.paginator.page_range %}
+            {% if orders.number == num %}
+            <li class="page-item active">
+                <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+            </li>
+            {% elif num > orders.number|add:'-3' and num < orders.number|add:'3' %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+            </li>
+            {% endif %}
+        {% endfor %}
+        
+        {% if orders.has_next %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ orders.next_page_number }}">Следующая</a>
+        </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+{% else %}
+<div class="text-center py-5">
+    <i class="fas fa-box-open fa-4x text-muted mb-3"></i>
+    <h3 class="text-muted">У вас пока нет заказов</h3>
+    <p class="text-muted">Сделайте первый заказ прямо сейчас</p>
+    <a href="{% url 'products' %}" class="btn btn-primary">
+        <i class="fas fa-shopping-cart"></i> Перейти к товарам
+    </a>
+</div>
+{% endif %}
+{% endblock %}

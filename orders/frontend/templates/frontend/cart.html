@@ -1,0 +1,235 @@
+{% extends 'frontend/base.html' %}
+
+{% block title %}Корзина{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Корзина</h2>
+    <a href="{% url 'products' %}" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-left"></i> Продолжить покупки
+    </a>
+</div>
+
+{% if cart.items %}
+<div class="table-responsive">
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th>Товар</th>
+                <th>Количество</th>
+                <th>Цена</th>
+                <th>Сумма</th>
+                <th>Действия</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in cart.items %}
+            <tr>
+                <td>
+                    <div class="d-flex align-items-center">
+                        <img src="{{ item.product_info.product.image.url if item.product_info.product.image else '/static/frontend/images/placeholder.jpg' }}" 
+                             alt="{{ item.product_info.product.name }}" class="me-3" style="width: 60px; height: 60px; object-fit: cover;">
+                        <div>
+                            <h6>{{ item.product_info.product.name }}</h6>
+                            <small class="text-muted">{{ item.product_info.model if item.product_info.model else 'Без модели' }}</small>
+                        </div>
+                    </div>
+                </td>
+                <td>
+                    <div class="input-group" style="width: 150px;">
+                        <button class="btn btn-outline-secondary update-quantity" data-order-item-id="{{ item.id }}" data-change="-1">
+                            <i class="fas fa-minus"></i>
+                        </button>
+                        <input type="number" class="form-control text-center quantity-input" 
+                               value="{{ item.quantity }}" min="1" max="{{ item.product_info.quantity }}">
+                        <button class="btn btn-outline-secondary update-quantity" data-order-item-id="{{ item.id }}" data-change="1">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </div>
+                    <small class="text-muted">
+                        Доступно: {{ item.product_info.quantity }} шт.
+                    </small>
+                </td>
+                <td>
+                    <span class="price">{{ item.product_info.price }} ₽</span>
+                </td>
+                <td>
+                    <strong class="total-price">{{ item.quantity|mul:item.product_info.price }} ₽</strong>
+                </td>
+                <td>
+                    <button class="btn btn-outline-danger btn-sm delete-from-cart" data-order-item-id="{{ item.id }}">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="row">
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Итого:</h5>
+                <h3 class="text-primary" id="total-price">{{ cart.total_price }} ₽</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Оформить заказ</h5>
+                <p class="text-muted">Пожалуйста, выберите контакт для доставки или добавьте новый</p>
+                
+                <div class="mb-3">
+                    <label for="contact_id" class="form-label">Контакт для доставки</label>
+                    <select class="form-select" id="contact_id" name="contact_id">
+                        <option value="">Выберите контакт...</option>
+                        {% for contact in contacts %}
+                        <option value="{{ contact.id }}">
+                            {{ contact.city }}, {{ contact.street }}, {{ contact.house }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="d-grid">
+                    <button class="btn btn-success btn-lg" id="checkout-btn">
+                        <i class="fas fa-credit-card"></i> Оформить заказ
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="text-center py-5">
+    <i class="fas fa-shopping-cart fa-4x text-muted mb-3"></i>
+    <h3 class="text-muted">Корзина пуста</h3>
+    <p class="text-muted">Добавьте товары для продолжения покупок</p>
+    <a href="{% url 'products' %}" class="btn btn-primary">
+        <i class="fas fa-arrow-left"></i> Перейти к товарам
+    </a>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function updateQuantity(orderItemId, quantity) {
+    fetch('{% url "update_cart" %}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: `order_item_id=${orderItemId}&quantity=${quantity}`
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            showNotification(data.message, 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Ошибка:', error);
+        showNotification('Ошибка при обновлении количества', 'error');
+    });
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Обновление количества
+    const quantityInputs = document.querySelectorAll('.quantity-input');
+    const updateQuantityButtons = document.querySelectorAll('.update-quantity');
+    
+    quantityInputs.forEach(input => {
+        input.addEventListener('change', function() {
+            const orderItemId = this.closest('tr').querySelector('.delete-from-cart').dataset.orderItemId;
+            updateQuantity(orderItemId, this.value);
+        });
+    });
+    
+    updateQuantityButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const orderItemId = this.dataset.orderItemId;
+            const change = parseInt(this.dataset.change);
+            const currentInput = this.closest('tr').querySelector('.quantity-input');
+            const currentValue = parseInt(currentInput.value);
+            const newValue = currentValue + change;
+            
+            if (newValue >= 1) {
+                updateQuantity(orderItemId, newValue);
+            }
+        });
+    });
+    
+    // Удаление из корзины
+    const deleteButtons = document.querySelectorAll('.delete-from-cart');
+    deleteButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const orderItemId = this.dataset.orderItemId;
+            
+            fetch('{% url "delete_from_cart" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: `order_item_id=${orderItemId}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    showNotification(data.message, 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Ошибка:', error);
+                showNotification('Ошибка при удалении товара', 'error');
+            });
+        });
+    });
+    
+    // Оформление заказа
+    const checkoutBtn = document.getElementById('checkout-btn');
+    checkoutBtn.addEventListener('click', function() {
+        const basketId = {{ cart.basket_id }};
+        const contactId = document.getElementById('contact_id').value;
+        
+        if (!contactId) {
+            showNotification('Выберите контакт для доставки', 'error');
+            return;
+        }
+        
+        fetch('{% url "checkout" }', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: `basket_id=${basketId}&contact_id=${contactId}`
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showNotification('Заказ успешно оформлен!', 'success');
+                setTimeout(() => {
+                    window.location.href = '{% url "orders" }';
+                }, 1500);
+            } else {
+                showNotification(data.message, 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Ошибка:', error);
+            showNotification('Ошибка при оформлении заказа', 'error');
+        });
+    });
+});
+</script>
+{% endblock %}

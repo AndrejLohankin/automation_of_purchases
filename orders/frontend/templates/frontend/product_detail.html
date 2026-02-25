@@ -1,0 +1,119 @@
+{% extends 'frontend/base.html' %}
+
+{% block title %}Детальная информация о товаре{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <h2 class="card-title">{{ product.product.name }}</h2>
+                <p class="text-muted">{{ product.product.category.name if product.product.category else 'Без категории' }}</p>
+                
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <h4 class="text-primary">{{ product.price }} ₽</h4>
+                        {% if product.price_rrc %}
+                        <p class="text-muted">
+                            <del>{{ product.price_rrc }} ₽</del>
+                        </p>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <p>
+                            <strong>В наличии:</strong> {{ product.quantity }} шт.
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="mb-4">
+                    <h5>Описание товара:</h5>
+                    <p>{{ product.product.description if product.product.description else 'Описание отсутствует' }}</p>
+                </div>
+                
+                <div class="mb-4">
+                    <h5>Характеристики:</h5>
+                    <div class="row">
+                        {% for param in product.product_parameters %}
+                        <div class="col-md-6">
+                            <strong>{{ param.parameter.name }}:</strong> {{ param.value }}
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                
+                {% if product.shop %}
+                <div class="mb-4">
+                    <h5>Поставщик:</h5>
+                    <p><strong>{{ product.shop.name }}</strong></p>
+                    {% if product.shop.url %}
+                    <p><a href="{{ product.shop.url }}" target="_blank">{{ product.shop.url }}</a></p>
+                    {% endif %}
+                </div>
+                {% endif %}
+                
+                <div class="d-flex gap-2">
+                    <button class="btn btn-primary add-to-cart" data-product-info-id="{{ product.id }}">
+                        <i class="fas fa-shopping-cart"></i> В корзину
+                    </button>
+                    <a href="{% url 'products' %}" class="btn btn-secondary">Назад к товарам</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5>Похожие товары</h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted">Рекомендуемые товары из той же категории</p>
+                {% for related in related_products %}
+                <div class="mb-3">
+                    <h6>{{ related.product.name }}</h6>
+                    <p class="text-primary">{{ related.price }} ₽</p>
+                </div>
+                {% empty %}
+                <p class="text-muted">Похожие товары отсутствуют</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const addToCartButton = document.querySelector('.add-to-cart');
+    
+    addToCartButton.addEventListener('click', function() {
+        const productInfoId = this.dataset.productInfoId;
+        const quantity = 1;
+        
+        fetch('{% url "add_to_cart" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: `product_info_id=${productInfoId}&quantity=${quantity}`
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                updateCartBadge();
+                showNotification('Товар добавлен в корзину', 'success');
+            } else {
+                showNotification(data.message, 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Ошибка:', error);
+            showNotification('Ошибка при добавлении товара', 'error');
+        });
+    });
+});
+</script>
+{% endblock %}

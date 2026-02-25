@@ -1,0 +1,286 @@
+{% extends 'frontend/base.html' %}
+
+{% block title %}Профиль пользователя{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Профиль пользователя</h2>
+    <a href="{% url 'products' %}" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-left"></i> Вернуться к покупкам
+    </a>
+</div>
+
+<div class="row">
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Личная информация</h5>
+                <div class="mb-3">
+                    <strong>Имя:</strong> {{ request.user.first_name }}<br>
+                    <strong>Фамилия:</strong> {{ request.user.last_name }}<br>
+                    <strong>Email:</strong> {{ request.user.email }}<br>
+                    <strong>Компания:</strong> {{ request.user.company }}<br>
+                    <strong>Должность:</strong> {{ request.user.position }}
+                </div>
+                <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#editProfileModal">
+                    <i class="fas fa-edit"></i> Редактировать
+                </button>
+            </div>
+        </div>
+        
+        <div class="card mt-4">
+            <div class="card-body">
+                <h5 class="card-title">Контакты для доставки</h5>
+                {% if contacts %}
+                    {% for contact in contacts %}
+                    <div class="contact-item mb-3 p-2 border rounded">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <strong>{{ contact.city }}, {{ contact.street }}, {{ contact.house }}</strong><br>
+                                <small class="text-muted">{{ contact.phone }}</small>
+                            </div>
+                            <div>
+                                <button class="btn btn-sm btn-outline-primary edit-contact" data-contact-id="{{ contact.id }}">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-danger delete-contact" data-contact-id="{{ contact.id }}">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted">Контакты не добавлены</p>
+                {% endif %}
+                <button class="btn btn-success btn-sm w-100" data-bs-toggle="modal" data-bs-target="#addContactModal">
+                    <i class="fas fa-plus"></i> Добавить контакт
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Статистика заказов</h5>
+                <div class="row">
+                    <div class="col-md-3 text-center">
+                        <h2 class="text-primary">{{ orders_count }}</h2>
+                        <p class="text-muted">Всего заказов</p>
+                    </div>
+                    <div class="col-md-3 text-center">
+                        <h2 class="text-success">{{ total_spent }} ₽</h2>
+                        <p class="text-muted">Потрачено</p>
+                    </div>
+                    <div class="col-md-3 text-center">
+                        <h2 class="text-warning">{{ average_order }} ₽</h2>
+                        <p class="text-muted">Средний чек</p>
+                    </div>
+                    <div class="col-md-3 text-center">
+                        <h2 class="text-info">{{ pending_orders }}</h2>
+                        <p class="text-muted">В обработке</p>
+                    </div>
+                </div>
+                
+                <div class="mt-4">
+                    <h6>Последние заказы:</h6>
+                    {% for order in recent_orders %}
+                    <div class="recent-order-item mb-2 p-2 border rounded">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong>#{{ order.id }}</strong> - {{ order.dt|date:"d.m.Y H:i" }}<br>
+                                <small class="text-muted">{{ order.get_state_display }}</small>
+                            </div>
+                            <span class="badge bg-primary">{{ order.total_price }} ₽</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно редактирования профиля -->
+<div class="modal fade" id="editProfileModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Редактировать профиль</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editProfileForm">
+                    <div class="mb-3">
+                        <label for="first_name" class="form-label">Имя</label>
+                        <input type="text" class="form-control" id="first_name" value="{{ request.user.first_name }}">
+                    </div>
+                    <div class="mb-3">
+                        <label for="last_name" class="form-label">Фамилия</label>
+                        <input type="text" class="form-control" id="last_name" value="{{ request.user.last_name }}">
+                    </div>
+                    <div class="mb-3">
+                        <label for="company" class="form-label">Компания</label>
+                        <input type="text" class="form-control" id="company" value="{{ request.user.company }}">
+                    </div>
+                    <div class="mb-3">
+                        <label for="position" class="form-label">Должность</label>
+                        <input type="text" class="form-control" id="position" value="{{ request.user.position }}">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                <button type="button" class="btn btn-primary" id="saveProfileBtn">Сохранить</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно добавления контакта -->
+<div class="modal fade" id="addContactModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Добавить контакт</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addContactForm">
+                    <div class="mb-3">
+                        <label for="city" class="form-label">Город</label>
+                        <input type="text" class="form-control" id="city" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="street" class="form-label">Улица</label>
+                        <input type="text" class="form-control" id="street" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="house" class="form-label">Дом</label>
+                        <input type="text" class="form-control" id="house" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="structure" class="form-label">Корпус</label>
+                        <input type="text" class="form-control" id="structure">
+                    </div>
+                    <div class="mb-3">
+                        <label for="building" class="form-label">Строение</label>
+                        <input type="text" class="form-control" id="building">
+                    </div>
+                    <div class="mb-3">
+                        <label for="apartment" class="form-label">Квартира</label>
+                        <input type="text" class="form-control" id="apartment">
+                    </div>
+                    <div class="mb-3">
+                        <label for="phone" class="form-label">Телефон</label>
+                        <input type="text" class="form-control" id="phone" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                <button type="button" class="btn btn-success" id="saveContactBtn">Добавить</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Функция обновления профиля
+function updateProfile() {
+    const data = {
+        'first_name': document.getElementById('first_name').value,
+        'last_name': document.getElementById('last_name').value,
+        'company': document.getElementById('company').value,
+        'position': document.getElementById('position').value
+    };
+    
+    fetch('{% url "profile" %}', {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification('Профиль обновлен', 'success');
+            location.reload();
+        } else {
+            showNotification(data.message, 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Ошибка:', error);
+        showNotification('Ошибка при обновлении профиля', 'error');
+    });
+}
+
+// Функция добавления контакта
+function addContact() {
+    const data = {
+        'city': document.getElementById('city').value,
+        'street': document.getElementById('street').value,
+        'house': document.getElementById('house').value,
+        'structure': document.getElementById('structure').value,
+        'building': document.getElementById('building').value,
+        'apartment': document.getElementById('apartment').value,
+        'phone': document.getElementById('phone').value
+    };
+    
+    fetch('{% url "add_contact" %}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification('Контакт добавлен', 'success');
+            setTimeout(() => {
+                location.reload();
+            }, 1500);
+        } else {
+            showNotification(data.message, 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Ошибка:', error);
+        showNotification('Ошибка при добавлении контакта', 'error');
+    });
+}
+
+// Обработчики событий
+document.addEventListener('DOMContentLoaded', function() {
+    // Сохранение профиля
+    document.getElementById('saveProfileBtn').addEventListener('click', function() {
+        updateProfile();
+    });
+    
+    // Добавление контакта
+    document.getElementById('saveContactBtn').addEventListener('click', function() {
+        addContact();
+    });
+    
+    // Обработка закрытия модальных окон
+    const profileModal = new bootstrap.Modal(document.getElementById('editProfileModal'));
+    const contactModal = new bootstrap.Modal(document.getElementById('addContactModal'));
+    
+    profileModal.addEventListener('hidden.bs.modal', function() {
+        document.getElementById('editProfileForm').reset();
+    });
+    
+    contactModal.addEventListener('hidden.bs.modal', function() {
+        document.getElementById('addContactForm').reset();
+    });
+});
+</script>
+{% endblock %}

@@ -10,6 +10,7 @@ python manage.py createsuperuser
 2@mail.ru
 brigbrig
 python manage.py load_db ../data/shop1.yaml
+python manage.py runserver
 
 docker-compose up -d --build
 docker-compose logs -f celery_worker

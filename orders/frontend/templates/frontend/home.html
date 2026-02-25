@@ -1,0 +1,50 @@
+{% extends 'frontend/base.html' %}
+
+{% block title %}Главная страница{% endblock %}
+
+{% block content %}
+<div class="jumbotron">
+    <h1 class="display-4">Добро пожаловать в систему автоматизации закупок!</h1>
+    <p class="lead">Удобная платформа для управления заказами и закупками товаров.</p>
+    <hr class="my-4">
+    <p>Авторизуйтесь или зарегистрируйтесь, чтобы начать работу.</p>
+    {% if not request.user.is_authenticated %}
+        <div class="d-flex gap-2">
+            <a class="btn btn-primary btn-lg" href="{% url 'login' %}" role="button">Войти</a>
+            <a class="btn btn-success btn-lg" href="{% url 'register' %}" role="button">Зарегистрироваться</a>
+        </div>
+    {% else %}
+        <a class="btn btn-primary btn-lg" href="{% url 'products' %}" role="button">Перейти к товарам</a>
+    {% endif %}
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <i class="fas fa-box fa-3x text-primary mb-3"></i>
+                <h5 class="card-title">Широкий ассортимент</h5>
+                <p class="card-text">Тысячи товаров от проверенных поставщиков</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <i class="fas fa-chart-line fa-3x text-success mb-3"></i>
+                <h5 class="card-title">Аналитика</h5>
+                <p class="card-text">Подробная статистика ваших заказов и закупок</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <i class="fas fa-shield-alt fa-3x text-warning mb-3"></i>
+                <h5 class="card-title">Безопасность</h5>
+                <p class="card-text">Защита данных и безопасные платежи</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

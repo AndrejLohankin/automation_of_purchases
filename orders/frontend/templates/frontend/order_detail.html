@@ -1,0 +1,149 @@
+{% extends 'frontend/base.html' %}
+
+{% block title %}Детали заказа{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2>Заказ #{{ order.id }}</h2>
+        <p class="text-muted">{{ order.dt|date:"d.m.Y H:i" }}</p>
+    </div>
+    <span class="badge bg-primary">{{ order.get_state_display }}</span>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Контактная информация</h5>
+                <div class="row">
+                    <div class="col-md-6">
+                        <strong>Город:</strong> {{ order.contact.city }}<br>
+                        <strong>Улица:</strong> {{ order.contact.street }}<br>
+                        <strong>Дом:</strong> {{ order.contact.house }}<br>
+                        {% if order.contact.structure %}
+                        <strong>Корпус:</strong> {{ order.contact.structure }}<br>
+                        {% endif %}
+                        {% if order.contact.building %}
+                        <strong>Строение:</strong> {{ order.contact.building }}<br>
+                        {% endif %}
+                        {% if order.contact.apartment %}
+                        <strong>Квартира:</strong> {{ order.contact.apartment }}<br>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Телефон:</strong> {{ order.contact.phone }}<br>
+                        <strong>Email:</strong> {{ order.user.email }}<br>
+                        <strong>Компания:</strong> {{ order.user.company }}<br>
+                        <strong>Должность:</strong> {{ order.user.position }}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card mt-4">
+            <div class="card-body">
+                <h5 class="card-title">Состав заказа</h5>
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Товар</th>
+                                <th>Количество</th>
+                                <th>Цена</th>
+                                <th>Сумма</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in order.ordered_items.all %}
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <img src="{{ item.product_info.product.image.url if item.product_info.product.image else '/static/frontend/images/placeholder.jpg' }}" 
+                                             alt="{{ item.product_info.product.name }}" class="me-3" style="width: 50px; height: 50px; object-fit: cover;">
+                                        <div>
+                                            <h6>{{ item.product_info.product.name }}</h6>
+                                            <small class="text-muted">{{ item.product_info.model if item.product_info.model else 'Без модели' }}</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>{{ item.quantity }}</td>
+                                <td>{{ item.product_info.price }} ₽</td>
+                                <td>{{ item.quantity|mul:item.product_info.price }} ₽</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Итоговая информация</h5>
+                
+                <div class="mb-3">
+                    <h6>Стоимость товаров:</h6>
+                    <p class="text-primary">{{ order.total_price }} ₽</p>
+                </div>
+                
+                {% if order.state == 'basket' %}
+                <div class="mb-3">
+                    <button class="btn btn-warning btn-sm w-100">
+                        <i class="fas fa-edit"></i> Редактировать
+                    </button>
+                </div>
+                {% endif %}
+                
+                {% if order.state == 'confirmed' %}
+                <div class="mb-3">
+                    <button class="btn btn-info btn-sm w-100">
+                        <i class="fas fa-info-circle"></i> Заказ подтвержден
+                    </button>
+                </div>
+                {% endif %}
+                
+                {% if order.state == 'assembled' %}
+                <div class="mb-3">
+                    <button class="btn btn-success btn-sm w-100">
+                        <i class="fas fa-box"></i> Заказ собран
+                    </button>
+                </div>
+                {% endif %}
+                
+                {% if order.state == 'sent' %}
+                <div class="mb-3">
+                    <button class="btn btn-primary btn-sm w-100">
+                        <i class="fas fa-truck"></i> Заказ отправлен
+                    </button>
+                </div>
+                {% endif %}
+                
+                {% if order.state == 'delivered' %}
+                <div class="mb-3">
+                    <button class="btn btn-success btn-sm w-100">
+                        <i class="fas fa-check-circle"></i> Заказ доставлен
+                    </button>
+                </div>
+                {% endif %}
+                
+                {% if order.state == 'canceled' %}
+                <div class="mb-3">
+                    <button class="btn btn-danger btn-sm w-100">
+                        <i class="fas fa-times-circle"></i> Заказ отменен
+                    </button>
+                </div>
+                {% endif %}
+                
+                <div class="text-center">
+                    <a href="{% url 'orders' %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> К списку заказов
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
