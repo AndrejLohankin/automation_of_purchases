@@ -75,7 +75,7 @@ MEDIA_ROOT = settings.BASE_DIR / 'media' / 'frontend'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [settings.BASE_DIR / 'frontend' / 'templates'],
+        'DIRS': [settings.BASE_DIR / 'frontend' / 'templates' / 'frontend'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [

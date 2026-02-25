@@ -1,0 +1,166 @@
+{% extends 'frontend/base.html' %}
+
+{% block title %}Оформление заказа{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Оформление заказа</h2>
+    <a href="{% url 'cart' %}" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-left"></i> Вернуться в корзину
+    </a>
+</div>
+
+{% if error %}
+<div class="alert alert-danger">{{ error }}</div>
+{% endif %}
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Состав заказа</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Товар</th>
+                                <th>Количество</th>
+                                <th>Цена</th>
+                                <th>Сумма</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in cart.items %}
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <img src="{{ item.product_info.product.image.url if item.product_info.product.image else '/static/frontend/images/placeholder.jpg' }}" 
+                                             alt="{{ item.product_info.product.name }}" class="me-3" style="width: 50px; height: 50px; object-fit: cover;">
+                                        <div>
+                                            <h6>{{ item.product_info.product.name }}</h6>
+                                            <small class="text-muted">{{ item.product_info.model if item.product_info.model else 'Без модели' }}</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>{{ item.quantity }} шт.</td>
+                                <td><span class="price">{{ item.product_info.price }} ₽</span></td>
+                                <td><strong class="total-price">{{ item.quantity|mul:item.product_info.price }} ₽</strong></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="d-flex justify-content-between align-items-center mt-3">
+                    <h5>Итого:</h5>
+                    <h4 class="text-primary">{{ cart.total_price }} ₽</h4>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Контактная информация</h5>
+            </div>
+            <div class="card-body">
+                <form method="post" action="{% url 'checkout' %}">
+                    {% csrf_token %}
+                    
+                    <input type="hidden" name="basket_id" value="{{ cart.basket_id }}">
+                    
+                    <div class="mb-3">
+                        <label for="contact_id" class="form-label">Выберите контакт для доставки</label>
+                        <select class="form-select" id="contact_id" name="contact_id" required>
+                            <option value="">Выберите контакт...</option>
+                            {% for contact in contacts %}
+                            <option value="{{ contact.id }}">
+                                {{ contact.city }}, {{ contact.street }}, {{ contact.house }}
+                                ({{ contact.phone }})
+                            </option>
+                            {% endfor %}
+                        </select>
+                        <small class="text-muted">Если контакта нет в списке, добавьте его в профиле</small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="comment" class="form-label">Комментарий к заказу</label>
+                        <textarea class="form-control" id="comment" name="comment" rows="3" placeholder="Например: удобное время для звонка, особые пожелания и т.д."></textarea>
+                    </div>
+                    
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-success btn-lg">
+                            <i class="fas fa-credit-card"></i> Подтвердить заказ
+                        </button>
+                    </div>
+                </form>
+                
+                <div class="text-center mt-3">
+                    <small class="text-muted">
+                        Нажимая "Подтвердить заказ", вы соглашаетесь с условиями использования
+                    </small>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card mt-3">
+            <div class="card-body text-center">
+                <h6 class="text-primary">Информация о безопасности</h6>
+                <small class="text-muted">
+                    Ваши данные защищены современными технологиями шифрования<br>
+                    Платежи обрабатываются через безопасные системы
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Обработка формы
+const checkoutForm = document.querySelector('form[action*="checkout"]');
+if (checkoutForm) {
+    checkoutForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(this);
+        const data = Object.fromEntries(formData);
+        
+        // Валидация
+        if (!data.contact_id) {
+            showNotification('Выберите контакт для доставки', 'error');
+            return;
+        }
+        
+        // Отправка данных
+        fetch(this.action, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: new URLSearchParams(data).toString()
+        })
+        .then(response => response.json())
+        .then(result => {
+            if (result.success) {
+                showNotification('Заказ успешно оформлен!', 'success');
+                setTimeout(() => {
+                    window.location.href = '{% url "orders" %}';
+                }, 1500);
+            } else {
+                showNotification(result.message || 'Ошибка при оформлении заказа', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Ошибка:', error);
+            showNotification('Ошибка при оформлении заказа', 'error');
+        });
+    });
+}
+</script>
+{% endblock %}

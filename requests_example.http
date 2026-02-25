@@ -11,10 +11,10 @@ POST {{baseUrl}}/register/
 Content-Type: application/json
 
 {
-    "first_name": "Test3",
-    "last_name": "User3",
-    "email": "testuser@example3.com",
-    "password": "securepassword1233"
+    "first_name": "Test4",
+    "last_name": "User4",
+    "email": "testuser@example4.com",
+    "password": "securepassword1234"
 }
 
 ### --- Вход ---

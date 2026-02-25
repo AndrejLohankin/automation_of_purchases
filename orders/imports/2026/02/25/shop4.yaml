@@ -1,0 +1,323 @@
+shop: ДНС
+categories:
+  - id: 101
+    name: Ноутбуки
+  - id: 102
+    name: Смартфоны
+  - id: 103
+    name: Планшеты
+  - id: 104
+    name: Телевизоры
+  - id: 105
+    name: Наушники
+  - id: 106
+    name: Мониторы
+  - id: 107
+    name: Компьютеры
+  - id: 108
+    name: Аксессуары
+
+goods:
+  - id: 1001
+    category: 101
+    model: acer/nitro-5-an515-57-59vz
+    name: Ноутбук Acer Nitro 5 AN515-57-59VZ (черный)
+    price: 85000
+    price_rrc: 89990
+    quantity: 12
+    parameters:
+      "Процессор": Intel Core i7-12650H
+      "Оперативная память": 16 ГБ
+      "Накопитель": 512 ГБ SSD + 1 ТБ HDD
+      "Видеокарта": NVIDIA GeForce RTX 3050
+      "Диагональ экрана": 15.6"
+      "Разрешение": 1920x1080
+      "Цвет": черный
+
+  - id: 1002
+    category: 101
+    model: asus/tuf-gaming-f15-fx506hcb-hn141
+    name: Ноутбук ASUS TUF Gaming F15 FX506HCB-HN141 (черный)
+    price: 92000
+    price_rrc: 97990
+    quantity: 8
+    parameters:
+      "Процессор": Intel Core i7-11800H
+      "Оперативная память": 16 ГБ
+      "Накопитель": 512 ГБ SSD
+      "Видеокарта": NVIDIA GeForce RTX 3060
+      "Диагональ экрана": 15.6"
+      "Разрешение": 1920x1080
+      "Цвет": черный
+
+  - id: 1003
+    category: 101
+    model: hp/pavilion-15-eg0030ur
+    name: Ноутбук HP Pavilion 15-eg0030ur (серебристый)
+    price: 65000
+    price_rrc: 69990
+    quantity: 15
+    parameters:
+      "Процессор": AMD Ryzen 5 5600H
+      "Оперативная память": 8 ГБ
+      "Накопитель": 512 ГБ SSD
+      "Видеокарта": AMD Radeon Graphics
+      "Диагональ экрана": 15.6"
+      "Разрешение": 1920x1080
+      "Цвет": серебристый
+
+  - id: 1004
+    category: 102
+    model: samsung/galaxy-s23-ultra
+    name: Смартфон Samsung Galaxy S23 Ultra (черный)
+    price: 120000
+    price_rrc: 129990
+    quantity: 20
+    parameters:
+      "Операционная система": Android 13
+      "Процессор": Qualcomm Snapdragon 8 Gen 2
+      "Оперативная память": 12 ГБ
+      "Встроенная память": 512 ГБ
+      "Диагональ экрана": 6.8"
+      "Разрешение": 3088x1440
+      "Емкость аккумулятора": 5000 мАч
+      "Цвет": черный
+
+  - id: 1005
+    category: 102
+    model: apple/iphone-15-pro
+    name: Смартфон Apple iPhone 15 Pro (серый)
+    price: 115000
+    price_rrc: 124990
+    quantity: 18
+    parameters:
+      "Операционная система": iOS 17
+      "Процессор": Apple A17 Pro
+      "Оперативная память": 8 ГБ
+      "Встроенная память": 256 ГБ
+      "Диагональ экрана": 6.1"
+      "Разрешение": 2556x1179
+      "Емкость аккумулятора": 3274 мАч
+      "Цвет": серый
+
+  - id: 1006
+    category: 102
+    model: xiaomi/redmi-note-12-pro-5g
+    name: Смартфон Xiaomi Redmi Note 12 Pro 5G (синий)
+    price: 35000
+    price_rrc: 39990
+    quantity: 25
+    parameters:
+      "Операционная система": Android 13
+      "Процессор": MediaTek Dimensity 1080
+      "Оперативная память": 8 ГБ
+      "Встроенная память": 256 ГБ
+      "Диагональ экрана": 6.67"
+      "Разрешение": 2400x1080
+      "Емкость аккумулятора": 5000 мАч
+      "Цвет": синий
+
+  - id: 1007
+    category: 103
+    model: apple/ipad-pro-11-4th-gen
+    name: Планшет Apple iPad Pro 11 (4-го поколения) (серебристый)
+    price: 95000
+    price_rrc: 104990
+    quantity: 10
+    parameters:
+      "Операционная система": iPadOS 16
+      "Процессор": Apple M2
+      "Оперативная память": 8 ГБ
+      "Встроенная память": 128 ГБ
+      "Диагональ экрана": 11"
+      "Разрешение": 2388x1668
+      "Емкость аккумулятора": 7538 мАч
+      "Цвет": серебристый
+
+  - id: 1008
+    category: 103
+    model: samsung/galaxy-tab-s9
+    name: Планшет Samsung Galaxy Tab S9 (черный)
+    price: 75000
+    price_rrc: 82990
+    quantity: 12
+    parameters:
+      "Операционная система": Android 13
+      "Процессор": Qualcomm Snapdragon 8 Gen 2
+      "Оперативная память": 8 ГБ
+      "Встроенная память": 128 ГБ
+      "Диагональ экрана": 8.7"
+      "Разрешение": 1848x2304
+      "Емкость аккумулятора": 8000 мАч
+      "Цвет": черный
+
+  - id: 1009
+    category: 104
+    model: samsung/qe55q60b
+    name: Телевизор Samsung QE55Q60B (черный)
+    price: 55000
+    price_rrc: 59990
+    quantity: 8
+    parameters:
+      "Диагональ экрана": 55"
+      "Тип матрицы": LED
+      "Разрешение": 3840x2160 (4K UHD)
+      "Smart TV": Да
+      "Частота обновления": 60 Гц
+      "Цвет": черный
+
+  - id: 1010
+    category: 104
+    model: lg/43up75006lf
+    name: Телевизор LG 43UP75006LF (черный)
+    price: 32000
+    price_rrc: 35990
+    quantity: 15
+    parameters:
+      "Диагональ экрана": 43"
+      "Тип матрицы": LED
+      "Разрешение": 3840x2160 (4K UHD)
+      "Smart TV": Да
+      "Частота обновления": 60 Гц
+      "Цвет": черный
+
+  - id: 1011
+    category: 104
+    model: sony/xr-55x90kg
+    name: Телевизор Sony XR-55X90KG (черный)
+    price: 95000
+    price_rrc: 104990
+    quantity: 5
+    parameters:
+      "Диагональ экрана": 55"
+      "Тип матрицы": LED
+      "Разрешение": 3840x2160 (4K UHD)
+      "Smart TV": Да
+      "Частота обновления": 100 Гц
+      "Цвет": черный
+
+  - id: 1012
+    category: 105
+    model: sony/wh-1000xm5
+    name: Наушники Sony WH-1000XM5 (черные)
+    price: 25000
+    price_rrc: 28990
+    quantity: 20
+    parameters:
+      "Тип": Накладные
+      "Тип подключения": Bluetooth
+      "Активное шумоподавление": Да
+      "Время работы": 30 часов
+      "Цвет": черный
+
+  - id: 1013
+    category: 105
+    model: apple/airpods-max
+    name: Наушники Apple AirPods Max (серебристые)
+    price: 55000
+    price_rrc: 59990
+    quantity: 10
+    parameters:
+      "Тип": Накладные
+      "Тип подключения": Bluetooth
+      "Активное шумоподавление": Да
+      "Время работы": 20 часов
+      "Цвет": серебристый
+
+  - id: 1014
+    category: 105
+    model: jbl/quantum-900
+    name: Наушники JBL Quantum 900 (черные)
+    price: 12000
+    price_rrc: 13990
+    quantity: 15
+    parameters:
+      "Тип": Накладные
+      "Тип подключения": Bluetooth
+      "Активное шумоподавление": Да
+      "Время работы": 27 часов
+      "Цвет": черный
+
+  - id: 1015
+    category: 106
+    model: samsung/ls27am500uiexci
+    name: Монитор Samsung LS27AM500UIEXCI (черный)
+    price: 22000
+    price_rrc: 24990
+    quantity: 18
+    parameters:
+      "Диагональ экрана": 27"
+      "Тип матрицы": IPS
+      "Разрешение": 3840x2160 (4K UHD)
+      "Частота обновления": 60 Гц
+      "Время отклика": 5 мс
+      "Цвет": черный
+
+  - id: 1016
+    category: 106
+    model: lg/27ul500-w
+    name: Монитор LG 27UL500-W (белый)
+    price: 28000
+    price_rrc: 31990
+    quantity: 12
+    parameters:
+      "Диагональ экрана": 27"
+      "Тип матрицы": IPS
+      "Разрешение": 3840x2160 (4K UHD)
+      "Частота обновления": 60 Гц
+      "Время отклика": 5 мс
+      "Цвет": белый
+
+  - id: 1017
+    category: 107
+    model: lenovo/thinkcentre-m90q-gen-3
+    name: Компьютер Lenovo ThinkCentre M90q Gen 3 (черный)
+    price: 65000
+    price_rrc: 72990
+    quantity: 7
+    parameters:
+      "Процессор": Intel Core i5-12500
+      "Оперативная память": 16 ГБ
+      "Накопитель": 512 ГБ SSD
+      "Видеокарта": Intel UHD Graphics 730
+      "Цвет": черный
+
+  - id: 1018
+    category: 107
+    model: hp/pavilion-desktop-tp01-2050ur
+    name: Компьютер HP Pavilion Desktop TP01-2050ur (черный)
+    price: 45000
+    price_rrc: 49990
+    quantity: 10
+    parameters:
+      "Процессор": AMD Ryzen 5 5600G
+      "Оперативная память": 16 ГБ
+      "Накопитель": 512 ГБ SSD + 1 ТБ HDD
+      "Видеокарта": AMD Radeon Graphics
+      "Цвет": черный
+
+  - id: 1019
+    category: 108
+    model: logitech/mx-mechanics
+    name: Клавиатура Logitech MX Mechanics (серая)
+    price: 8000
+    price_rrc: 8990
+    quantity: 25
+    parameters:
+      "Тип клавиатуры": Механическая
+      "Тип подключения": Bluetooth
+      "Подсветка": Да
+      "Цвет": серый
+
+  - id: 1020
+    category: 108
+    model: apple/magic-mouse-2
+    name: Мышь Apple Magic Mouse 2 (серебристая)
+    price: 6000
+    price_rrc: 6990
+    quantity: 30
+    parameters:
+      "Тип мыши": Сенсорная
+      "Тип подключения": Bluetooth
+      "Подсветка": Нет
+      "Цвет": серебристый

@@ -8,7 +8,9 @@
         <div class="card">
             <div class="card-body">
                 <h2 class="card-title">{{ product.product.name }}</h2>
-                <p class="text-muted">{{ product.product.category.name if product.product.category else 'Без категории' }}</p>
+                <p class="text-muted">{% if product.product.category %}
+                                        {{ product.product.category.name }}
+                                        {% endif %}</p>
                 
                 <div class="row mb-4">
                     <div class="col-md-6">
