@@ -119,7 +119,7 @@ def load_data(filepath_or_url, user_id=None):
                     'product': product,
                     'model': model_name,
                     'price': price,
-                    'price_rrc': price_rrc,
+                    'price_rrc': price_rrc if price_rrc is not None else 0,  # Дефолтное значение
                     'quantity': quantity,
                 }
             )

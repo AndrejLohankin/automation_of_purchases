@@ -153,7 +153,11 @@ class ProductInfo(models.Model):
                              on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField(verbose_name='Количество')
     price = models.PositiveIntegerField(verbose_name='Цена')
-    price_rrc = models.PositiveIntegerField(verbose_name='Рекомендуемая розничная цена')
+    price_rrc = models.PositiveIntegerField(
+        verbose_name='Рекомендуемая розничная цена',
+        null=True,  # Разрешить NULL значения
+        blank=True  # Разрешить пустые значения в формах
+    )
 
     class Meta:
         verbose_name = 'Информация о продукте'

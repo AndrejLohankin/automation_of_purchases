@@ -17,3 +17,13 @@ docker-compose down
 
 git reset --hard HEAD~1
 git push --force origin имя_ветки
+
+
+Алгоритм действий для codespaces:
+python -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+python manage.py migrate
+python manage.py createsuperuser
+docker-compose up -d --build
+
