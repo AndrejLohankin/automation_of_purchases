@@ -1,5 +1,7 @@
 {% extends 'frontend/base.html' %}
 
+{% load static %}
+
 {% block title %}Детали заказа{% endblock %}
 
 {% block content %}
@@ -55,11 +57,11 @@
                             </tr>
                         </thead>
                         <tbody>
-                            {% for item in order.ordered_items.all %}
+                            {% for item in order.items %}
                             <tr>
                                 <td>
                                     <div class="d-flex align-items-center">
-                                        <img src="{% if item.product_info.product.image %}{{ item.product_info.product.image.url }}{% else %}/static/frontend/images/placeholder.jpg{% endif %}"
+                                        <img src="{% if item.product_info.product.image %}{{ item.product_info.product.image.url }}{% else %}{% static 'frontend/img/no-image.jpg' %}{% endif %}"
                                              alt="{{ item.product_info.product.name }}" class="me-3" style="width: 50px; height: 50px; object-fit: cover;">
                                         <div>
                                             <h6>{{ item.product_info.product.name }}</h6>
