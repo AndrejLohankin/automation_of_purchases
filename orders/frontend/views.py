@@ -254,19 +254,20 @@ def cart_clear(request):
 def checkout(request):
     """Оформление заказа"""
     if request.method == 'POST':
-        basket_id = request.POST.get('basket_id')
         contact_id = request.POST.get('contact_id')
 
-        print(f"DEBUG: POST data received - basket_id: {basket_id}, contact_id: {contact_id}")
+        print(f"DEBUG: POST data received - contact_id: {contact_id}")
         print(f"DEBUG: User: {request.user.email}")
 
         # Обрабатываем заказ напрямую
         from backend.models import Order
 
         try:
-            # Получаем корзину
-            print(f"DEBUG: Trying to get order with id={basket_id}, user={request.user.id}, state='basket'")
-            cart = Order.objects.get(id=int(basket_id), user=request.user, state='basket')
+            # Получаем корзину напрямую из базы данных
+            cart = Order.objects.get(
+                user=request.user,
+                state='basket'
+            )
             print(f"DEBUG: Cart found: {cart.id}")
 
             # Обновляем статус заказа
@@ -282,7 +283,7 @@ def checkout(request):
         except ValueError:
             print("DEBUG: ValueError exception caught")
             return render(request, 'frontend/checkout.html', {
-                'error': 'Неверный ID корзины',
+                'error': 'Неверный ID контакта',
                 'cart': request.POST.get('cart'),
                 'contacts': request.POST.get('contacts')
             })
@@ -335,6 +336,7 @@ def orders(request):
         print(f"DEBUG: Order {order.id} - {order.state} - {order.dt}")
         print(f"DEBUG: Contact ID: {order.contact_id}")
         print(f"DEBUG: Items: {order.ordered_items.count()}")
+        print(f"DEBUG: Order state: {order.state}")
 
     # Сериализуем данные для отображения
     orders_data = []
