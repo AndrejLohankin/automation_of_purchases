@@ -17,32 +17,24 @@ function getCookie(name) {
 }
 
 // Показ уведомления
-function showNotification(message, type = 'info') {
-    // Удаляем существующее уведомление
-    const existingNotification = document.querySelector('.notification');
-    if (existingNotification) {
-        existingNotification.remove();
-    }
-    
+function showNotification(message, type) {
     // Создаем уведомление
     const notification = document.createElement('div');
-    notification.className = `notification ${type}`;
+    notification.className = `alert alert-${type} alert-dismissible fade show position-fixed top-0 start-50 translate-middle-x mt-3`;
+    notification.style.maxWidth = '500px';
     notification.innerHTML = `
-        <div class="d-flex justify-content-between align-items-center">
-            <span>${message}</span>
-            <button type="button" class="btn-close" onclick="this.parentElement.parentElement.remove()"></button>
-        </div>
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     `;
-    
-    // Добавляем в DOM
+
     document.body.appendChild(notification);
-    
-    // Автоматическое удаление через 5 секунд
+
+    // Автоматически закрываем через 3 секунды
     setTimeout(() => {
         if (notification.parentNode) {
             notification.remove();
         }
-    }, 5000);
+    }, 3000);
 }
 
 // Обновление количества товаров в корзине
@@ -398,31 +390,43 @@ function localize(key, locale = 'ru') {
 
 // Инициализация при загрузке страницы
 document.addEventListener('DOMContentLoaded', function() {
-    // Автоматическое обновление корзины
-    setInterval(updateCartBadge, 30000); // Каждые 30 секунд
-    
-    // Обработка всплывающих подсказок
-    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-    tooltipTriggerList.map(function (tooltipTriggerEl) {
-        return new bootstrap.Tooltip(tooltipTriggerEl);
-    });
-    
-    // Обработка модальных окон
-    const modalTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="modal"]'));
-    modalTriggerList.map(function (modalTriggerEl) {
-        return new bootstrap.Modal(modalTriggerEl);
-    });
-    
-    // Обработка всплывающих окон
-    const popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'));
-    popoverTriggerList.map(function (popoverTriggerEl) {
-        return new bootstrap.Popover(popoverTriggerEl);
-    });
-    
-    // Обработка выпадающих меню
-    const dropdownTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="dropdown"]'));
-    dropdownTriggerList.map(function (dropdownTriggerEl) {
-        return new bootstrap.Dropdown(dropdownTriggerEl);
+    const addToCartButtons = document.querySelectorAll('.add-to-cart');
+
+    addToCartButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const productInfoId = this.dataset.productInfoId;
+            const quantity = 1;
+
+            // Создаем CSRF токен
+            const csrfToken = document.querySelector('input[name=csrfmiddlewaretoken]')?.value || getCookie('csrftoken');
+
+            fetch('{% url "add_to_cart" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': csrfToken
+                },
+                body: `product_info_id=${productInfoId}&quantity=${quantity}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Обновляем счетчик корзины
+                    const cartBadge = document.getElementById('cart-badge');
+                    if (cartBadge) {
+                        cartBadge.textContent = data.cart_count;
+                        cartBadge.style.display = 'inline-block';
+                    }
+                    showNotification('Товар добавлен в корзину', 'success');
+                } else {
+                    showNotification(data.message, 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Ошибка:', error);
+                showNotification('Ошибка при добавлении товара', 'error');
+            });
+        });
     });
 });
 

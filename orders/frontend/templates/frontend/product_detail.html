@@ -36,7 +36,7 @@
                 <div class="mb-4">
                     <h5>Характеристики:</h5>
                     <div class="row">
-                        {% for param in product.product_parameters %}
+                        {% for param in product.product_parameters.all %}
                         <div class="col-md-6">
                             <strong>{{ param.parameter.name }}:</strong> {{ param.value }}
                         </div>
@@ -66,15 +66,15 @@
     
     <div class="col-md-4">
         <div class="card">
-            <div class="card-header">
+            <div class="header">
                 <h5>Похожие товары</h5>
             </div>
             <div class="card-body">
                 <p class="text-muted">Рекомендуемые товары из той же категории</p>
-                {% for related in related_products %}
+                {% for related_product in related_products %}
                 <div class="mb-3">
-                    <h6>{{ related.product.name }}</h6>
-                    <p class="text-primary">{{ related.price }} ₽</p>
+                    <h6>{{ related_product.product.name }}</h6>
+                    <p class="text-primary">{{ related_product.price }} ₽</p>
                 </div>
                 {% empty %}
                 <p class="text-muted">Похожие товары отсутствуют</p>
@@ -87,18 +87,35 @@
 
 {% block extra_js %}
 <script>
+// Функция для получения CSRF токена
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            // Does this cookie string begin with the name we want?
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     const addToCartButton = document.querySelector('.add-to-cart');
-    
+
     addToCartButton.addEventListener('click', function() {
         const productInfoId = this.dataset.productInfoId;
         const quantity = 1;
-        
+
         fetch('{% url "add_to_cart" %}', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
-                'X-CSRFToken': getCookie('csrftoken')
+                'X-CSRFToken': document.querySelector('input[name=csrfmiddlewaretoken]')?.value || getCookie('csrftoken')
             },
             body: `product_info_id=${productInfoId}&quantity=${quantity}`
         })

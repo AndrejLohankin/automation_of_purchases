@@ -37,7 +37,7 @@
                     {% for item in order.ordered_items.all %}
                     <div class="d-flex justify-content-between">
                         <small>{{ item.product_info.product.name }} (x{{ item.quantity }})</small>
-                        <small>{{ item.quantity|mul:item.product_info.price }} ₽</small>
+                        <small>{{ item.total_price }} ₽</small>
                     </div>
                     {% endfor %}
                 </div>

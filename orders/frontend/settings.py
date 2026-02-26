@@ -137,39 +137,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 # Настройки для интернационализации
 USE_I18N = True
-USE_L10N = True
-USE_TZ = True
-
-# Настройки для статических файлов
-STATIC_URL = '/static/frontend/'
-STATICFILES_DIRS = [
-    settings.BASE_DIR / 'frontend' / 'static',
-]
-STATIC_ROOT = settings.BASE_DIR / 'static' / 'frontend'
-
-# Настройки для медиафайлов
-MEDIA_URL = '/media/frontend/'
-MEDIA_ROOT = settings.BASE_DIR / 'media' / 'frontend'
-
-# Настройки для паролей
-AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
-]
-
-# Настройки для интернационализации
-USE_I18N = True
-USE_L10N = True
+USE_L10L = True
 USE_TZ = True
 
 # Настройки для дебаг тулбара (если установлен)

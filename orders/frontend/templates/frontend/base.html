@@ -10,6 +10,7 @@
     <link href="{% static 'frontend/css/style.css' %}" rel="stylesheet">
 </head>
 <body>
+    {% csrf_token %}
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
         <div class="container">
             <a class="navbar-brand" href="{% url 'home' %}">
@@ -76,7 +77,7 @@
 
     <footer class="bg-light text-center text-lg-start mt-5">
         <div class="text-center p-3" style="background-color: rgba(0, 0, 0, 0.2);">
-            <p>&copy; 2024 Автоматизация закупок. Все права защищены.</p>
+            <p>&copy; 2026 Автоматизация закупок. Все права защищены.</p>
         </div>
     </footer>
 

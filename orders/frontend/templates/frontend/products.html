@@ -14,7 +14,7 @@
 </div>
 
 <div class="row">
-    {% for product in products.results %}
+    {% for product in products %}
     <div class="col-md-4 mb-4">
         <div class="card h-100 product-card">
             <div class="card-body d-flex flex-column">
@@ -25,7 +25,7 @@
                     {% endif %}
                 </p>
 
-                {% for param in product.product_parameters %}
+                {% for param in product.product_parameters.all %}
                     {% if param.parameter.name != 'Модель' %}
                     <small class="text-muted">{{ param.parameter.name }}: {{ param.value }}</small><br>
                     {% endif %}
@@ -50,18 +50,18 @@
     {% endfor %}
 </div>
 
-{% if products.next or products.previous %}
+{% if products.has_previous or products.has_next %}
 <nav aria-label="Page navigation">
     <ul class="pagination justify-content-center">
-        {% if products.previous %}
+        {% if products.has_previous %}
         <li class="page-item">
-            <a class="page-link" href="?page={{ products.previous }}&category={{ category }}&search={{ search }}">Предыдущая</a>
+            <a class="page-link" href="?page={{ products.previous_page_number }}{% if category %}&category={{ category }}{% endif %}{% if search %}&search={{ search }}{% endif %}">Предыдущая</a>
         </li>
         {% endif %}
-        
-        {% if products.next %}
+
+        {% if products.has_next %}
         <li class="page-item">
-            <a class="page-link" href="?page={{ products.next }}&category={{ category }}&search={{ search }}">Следующая</a>
+            <a class="page-link" href="?page={{ products.next_page_number }}{% if category %}&category={{ category }}{% endif %}{% if search %}&search={{ search }}{% endif %}">Следующая</a>
         </li>
         {% endif %}
     </ul>
@@ -71,6 +71,23 @@
 
 {% block extra_js %}
 <script>
+// Функция для получения CSRF токена
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            // Does this cookie string begin with the name we want?
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     const addToCartButtons = document.querySelectorAll('.add-to-cart');
     
@@ -83,7 +100,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',
-                    'X-CSRFToken': getCookie('csrftoken')
+                    'X-CSRFToken': document.querySelector('input[name=csrfmiddlewaretoken]')?.value || getCookie('csrftoken')
                 },
                 body: `product_info_id=${productInfoId}&quantity=${quantity}`
             })

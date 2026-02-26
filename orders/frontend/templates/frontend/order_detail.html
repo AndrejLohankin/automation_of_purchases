@@ -68,8 +68,8 @@
                                     </div>
                                 </td>
                                 <td>{{ item.quantity }}</td>
-                                <td>{{ item.product_info.price }} ₽</td>
-                                <td>{{ item.quantity|mul:item.product_info.price }} ₽</td>
+                            <td>{{ item.product_info.price }} ₽</td>
+                            <td>{{ item.total_price }} ₽</td>
                             </tr>
                             {% endfor %}
                         </tbody>
