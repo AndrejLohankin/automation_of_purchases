@@ -129,3 +129,9 @@ CELERY_TIMEZONE = 'UTC'
 
 # Email
 DEFAULT_FROM_EMAIL = 'noreply@localhost'
+LOGIN_URL = '/login/'
+
+# Настройки для аутентификации
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
+]

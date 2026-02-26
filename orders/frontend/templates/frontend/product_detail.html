@@ -28,9 +28,9 @@
                     </div>
                 </div>
                 
-                <div class="mb-4">
+                 <div class="mb-4">
                     <h5>Описание товара:</h5>
-                    <p>{{ product.product.description if product.product.description else 'Описание отсутствует' }}</p>
+                    <p>{% if product.product.description %}{{ product.product.description }}{% else %}Описание отсутствует{% endif %}</p>
                 </div>
                 
                 <div class="mb-4">

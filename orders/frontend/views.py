@@ -1,11 +1,13 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, logout, authenticate
+from django.contrib.auth import login, authenticate
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 import requests
 from .forms import RegistrationForm, ContactForm
 from django.conf import settings
+from backend.models import User
 
 API_BASE_URL = f'http://{settings.ALLOWED_HOSTS[0]}/api/v1/' if settings.ALLOWED_HOSTS else 'http://localhost:8000/api/v1/'
 
@@ -16,17 +18,26 @@ def home(request):
         return redirect('products')
     return render(request, 'frontend/home.html')
 
+
 @csrf_exempt
 def login_view(request):
     """Вход пользователя"""
     if request.method == 'POST':
         email = request.POST.get('email')
         password = request.POST.get('password')
-        
+
+        # Пробуем через API
         response = requests.post(f'{API_BASE_URL}login/', data={'email': email, 'password': password})
-        
+
         if response.status_code == 200:
-            request.session['auth_token'] = response.json().get('token')
+            # Создаем или получаем пользователя Django
+            user, created = User.objects.get_or_create(
+                email=email,
+                defaults={'is_active': True}
+            )
+
+            # Вручную аутентифицируем пользователя
+            login(request, user)
             return redirect('products')
         else:
             return render(request, 'frontend/login.html', {'error': 'Неверный email или пароль'})

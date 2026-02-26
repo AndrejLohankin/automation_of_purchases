@@ -24,8 +24,8 @@ POST {{baseUrl}}/login/
 Content-Type: application/json
 
 {
-    "email": "testuser@example3.com",
-    "password": "securepassword1233"
+    "email": "testuser@example4.com",
+    "password": "securepassword1234"
 }
 
 ### --- Вход ---
