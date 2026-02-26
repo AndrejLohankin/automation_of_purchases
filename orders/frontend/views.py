@@ -257,22 +257,35 @@ def checkout(request):
         basket_id = request.POST.get('basket_id')
         contact_id = request.POST.get('contact_id')
 
+        print(f"DEBUG: POST data received - basket_id: {basket_id}, contact_id: {contact_id}")
+        print(f"DEBUG: User: {request.user.email}")
+
         # Обрабатываем заказ напрямую
         from backend.models import Order
 
         try:
             # Получаем корзину
-            cart = Order.objects.get(id=basket_id, user=request.user, state='basket')
+            print(f"DEBUG: Trying to get order with id={basket_id}, user={request.user.id}, state='basket'")
+            cart = Order.objects.get(id=int(basket_id), user=request.user, state='basket')
+            print(f"DEBUG: Cart found: {cart.id}")
 
             # Обновляем статус заказа
             cart.state = 'confirmed'  # или 'new', как у вас принято
             cart.contact_id = contact_id
             cart.save()
+            print(f"DEBUG: Order saved successfully. New state: {cart.state}")
 
             return redirect('orders')
         except Order.DoesNotExist:
+            print("DEBUG: Order.DoesNotExist exception caught")
             return render(request, 'frontend/checkout.html', {'error': 'Корзина не найдена'})
-
+        except ValueError:
+            print("DEBUG: ValueError exception caught")
+            return render(request, 'frontend/checkout.html', {
+                'error': 'Неверный ID корзины',
+                'cart': request.POST.get('cart'),
+                'contacts': request.POST.get('contacts')
+            })
     # Получаем корзину
     from backend.models import Order, OrderItem
 
@@ -280,6 +293,8 @@ def checkout(request):
         user=request.user,
         state='basket'
     )
+
+    print(f"DEBUG: Cart retrieved: {cart.id}, created: {created}")
 
     # Получаем элементы корзины
     items = cart.ordered_items.select_related('product_info__product').all()
@@ -293,6 +308,10 @@ def checkout(request):
     # Получаем контакты
     contacts = request.user.contacts.all()
 
+    print(f"DEBUG: Cart items count: {items.count()}")
+    print(f"DEBUG: Total price: {total_price}")
+    print(f"DEBUG: Contacts count: {contacts.count()}")
+
     return render(request, 'frontend/checkout.html', {
         'cart': {
             'items': items,
@@ -300,7 +319,6 @@ def checkout(request):
         },
         'contacts': contacts
     })
-
 
 @login_required
 def orders(request):
@@ -310,6 +328,13 @@ def orders(request):
 
     # Получаем все заказы пользователя, кроме корзины
     orders = Order.objects.filter(user=request.user).exclude(state='basket').order_by('-dt')
+
+    print(f"DEBUG: User {request.user.email} has {orders.count()} orders")
+
+    for order in orders:
+        print(f"DEBUG: Order {order.id} - {order.state} - {order.dt}")
+        print(f"DEBUG: Contact ID: {order.contact_id}")
+        print(f"DEBUG: Items: {order.ordered_items.count()}")
 
     # Сериализуем данные для отображения
     orders_data = []
@@ -336,7 +361,8 @@ def orders(request):
             'dt': order.dt,
             'state': order.state,
             'items': order_items,
-            'total_price': sum(item['total_price'] for item in order_items)
+            'total_price': sum(item['total_price'] for item in order_items),
+            'contact': order.contact
         }
         orders_data.append(order_data)
 

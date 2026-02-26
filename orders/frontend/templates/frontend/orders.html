@@ -21,9 +21,9 @@
                         <h5 class="card-title">Заказ #{{ order.id }}</h5>
                         <p class="text-muted small">{{ order.dt|date:"d.m.Y H:i" }}</p>
                     </div>
-                    <span class="badge bg-primary">{{ order.get_state_display }}</span>
+                    <span class="badge bg-primary">{{ order.state }}</span>
                 </div>
-                
+
                 <div class="mb-3">
                     <h6>Контакт для доставки:</h6>
                     <p>
@@ -31,10 +31,10 @@
                         {{ order.contact.phone }}
                     </p>
                 </div>
-                
+
                 <div class="mb-3">
                     <h6>Состав заказа:</h6>
-                    {% for item in order.ordered_items.all %}
+                    {% for item in order.items %}
                     <div class="d-flex justify-content-between">
                         <small>{{ item.product_info.product.name }} (x{{ item.quantity }})</small>
                         <small>{{ item.total_price }} ₽</small>
