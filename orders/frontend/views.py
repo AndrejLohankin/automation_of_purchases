@@ -60,6 +60,7 @@ def products(request):
     page = request.GET.get('page', 1)
     category = request.GET.get('category')
     search = request.GET.get('search')
+    sort = request.GET.get('sort', 'name')  # Добавляем сортировку
 
     # Получаем товары напрямую из базы данных
     from backend.models import ProductInfo, Category
@@ -74,6 +75,14 @@ def products(request):
     if search and search != 'None':
         products = products.filter(product__name__icontains=search)
 
+    # Сортировка
+    if sort == 'price_asc':
+        products = products.order_by('price')
+    elif sort == 'price_desc':
+        products = products.order_by('-price')
+    elif sort == 'name':
+        products = products.order_by('product__name')
+
     # Пагинация
     from django.core.paginator import Paginator
     paginator = Paginator(products, 12)  # 12 товаров на страницу
@@ -87,6 +96,7 @@ def products(request):
         'page': page,
         'category': category,
         'search': search,
+        'sort': sort,
         'categories': categories
     })
 

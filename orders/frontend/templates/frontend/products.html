@@ -13,6 +13,68 @@
     </div>
 </div>
 
+<!-- Классификатор по категориям -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <button class="btn btn-link text-decoration-none" type="button" data-bs-toggle="collapse" data-bs-target="#categoriesCollapse">
+                        Категории товаров <i class="fas fa-chevron-down ms-2"></i>
+                    </button>
+                </h5>
+            </div>
+            <div id="categoriesCollapse" class="collapse {% if category %}show{% endif %}">
+                <div class="card-body">
+                    <div class="row">
+                        {% for cat in categories %}
+                        <div class="col-md-3 mb-2">
+                            <div class="form-check">
+                                <input class="form-check-input category-filter" type="radio" name="category" id="category_{{ cat.id }}" value="{{ cat.id }}" {% if category == cat.id|stringformat:"s" %}checked{% endif %}>
+                                <label class="form-check-label" for="category_{{ cat.id }}">
+                                    {{ cat.name }}
+                                </label>
+                            </div>
+                        </div>
+                        {% endfor %}
+                        <div class="col-md-3 mb-2">
+                            <div class="form-check">
+                                <input class="form-check-input category-filter" type="radio" name="category" id="category_none" value="None" {% if category == 'None' %}checked{% endif %}>
+                                <label class="form-check-label" for="category_none">
+                                    Все товары
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Сортировка -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-md-6">
+                        <label class="form-label me-3">Сортировать по:</label>
+                        <select class="form-select form-select-sm d-inline-block" style="width: auto;" id="sortSelect">
+                            <option value="name" {% if sort == 'name' %}selected{% endif %}>Названию</option>
+                            <option value="price_asc" {% if sort == 'price_asc' %}selected{% endif %}>Цене (по возрастанию)</option>
+                            <option value="price_desc" {% if sort == 'price_desc' %}selected{% endif %}>Цене (по убыванию)</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6 text-md-end">
+                        <span class="text-muted me-2">Показано: {{ products.paginator.count }} товаров</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="row">
     {% for product in products %}
     <div class="col-md-4 mb-4">
@@ -55,13 +117,13 @@
     <ul class="pagination justify-content-center">
         {% if products.has_previous %}
         <li class="page-item">
-            <a class="page-link" href="?page={{ products.previous_page_number }}{% if category %}&category={{ category }}{% endif %}{% if search %}&search={{ search }}{% endif %}">Предыдущая</a>
+            <a class="page-link" href="?page={{ products.previous_page_number }}{% if category %}&category={{ category }}{% endif %}{% if search %}&search={{ search }}{% endif %}{% if sort %}&sort={{ sort }}{% endif %}">Предыдущая</a>
         </li>
         {% endif %}
 
         {% if products.has_next %}
         <li class="page-item">
-            <a class="page-link" href="?page={{ products.next_page_number }}{% if category %}&category={{ category }}{% endif %}{% if search %}&search={{ search }}{% endif %}">Следующая</a>
+            <a class="page-link" href="?page={{ products.next_page_number }}{% if category %}&category={{ category }}{% endif %}{% if search %}&search={{ search }}{% endif %}{% if sort %}&sort={{ sort }}{% endif %}">Следующая</a>
         </li>
         {% endif %}
     </ul>
@@ -88,7 +150,47 @@ function getCookie(name) {
     return cookieValue;
 }
 
+// Обновление URL при изменении фильтров
+function updateUrl() {
+    const urlParams = new URLSearchParams(window.location.search);
+
+    // Добавляем параметры
+    if (document.querySelector('input[name="category"]:checked')) {
+        urlParams.set('category', document.querySelector('input[name="category"]:checked').value);
+    }
+    if (document.getElementById('sortSelect')) {
+        urlParams.set('sort', document.getElementById('sortSelect').value);
+    }
+
+    // Сохраняем текущие параметры поиска и страницы
+    if (urlParams.has('search')) {
+        urlParams.set('search', urlParams.get('search'));
+    }
+    if (urlParams.has('page')) {
+        urlParams.set('page', urlParams.get('page'));
+    }
+
+    // Обновляем URL и перезагружаем страницу
+    window.location.search = urlParams.toString();
+}
+
 document.addEventListener('DOMContentLoaded', function() {
+    // Обработка клика по категориям
+    const categoryFilters = document.querySelectorAll('.category-filter');
+    categoryFilters.forEach(filter => {
+        filter.addEventListener('change', function() {
+            updateUrl();
+        });
+    });
+
+    // Обработка сортировки
+    const sortSelect = document.getElementById('sortSelect');
+    if (sortSelect) {
+        sortSelect.addEventListener('change', function() {
+            updateUrl();
+        });
+    }
+
     const addToCartButtons = document.querySelectorAll('.add-to-cart');
     
     addToCartButtons.forEach(button => {
