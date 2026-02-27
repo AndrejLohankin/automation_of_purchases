@@ -11,6 +11,7 @@ from backend.models import User
 from django.db.models import Sum
 import json
 
+
 @csrf_exempt
 def home(request):
     """Главная страница"""
@@ -53,6 +54,7 @@ def register_view(request):
     else:
         form = RegistrationForm()
     return render(request, 'frontend/register.html', {'form': form})
+
 
 @login_required
 def products(request):
@@ -339,6 +341,7 @@ def checkout(request):
         'contacts': contacts
     })
 
+
 @login_required
 def orders(request):
     """Список заказов"""
@@ -551,38 +554,92 @@ def add_contact(request):
         try:
             data = json.loads(request.body)
 
-            # Создаем новый контакт
-            from backend.models import Contact
+            # Определяем тип запроса
+            if request.method == 'POST':
+                # Создаем новый контакт
+                from backend.models import Contact
 
-            # Устанавливаем значения по умолчанию для пустых полей
-            city = data.get('city', '')
-            street = data.get('street', '')
-            house = data.get('house', '')
-            structure = data.get('structure', '')
-            building = data.get('building', '')
-            apartment = data.get('apartment', '')
-            phone = data.get('phone', '')
+                # Устанавливаем значения по умолчанию для пустых полей
+                city = data.get('city', '')
+                street = data.get('street', '')
+                house = data.get('house', '')
+                structure = data.get('structure', '')
+                building = data.get('building', '')
+                apartment = data.get('apartment', '')
+                phone = data.get('phone', '')
 
-            contact = Contact.objects.create(
-                user=request.user,
-                city=city,
-                street=street,
-                house=house,
-                structure=structure,
-                building=building,
-                apartment=apartment,
-                phone=phone
-            )
+                contact = Contact.objects.create(
+                    user=request.user,
+                    city=city,
+                    street=street,
+                    house=house,
+                    structure=structure,
+                    building=building,
+                    apartment=apartment,
+                    phone=phone
+                )
 
-            return JsonResponse({
-                'success': True,
-                'message': 'Контакт добавлен',
-                'contact_id': contact.id
-            })
+                return JsonResponse({
+                    'success': True,
+                    'message': 'Контакт добавлен',
+                    'contact_id': contact.id
+                })
+            elif request.method == 'DELETE':
+                # Удаляем контакт
+                contact_id = data.get('contact_id')
+                from backend.models import Contact
+
+                try:
+                    contact = Contact.objects.get(id=contact_id, user=request.user)
+                    contact.delete()
+
+                    return JsonResponse({
+                        'success': True,
+                        'message': 'Контакт удален'
+                    })
+                except Contact.DoesNotExist:
+                    return JsonResponse({
+                        'success': False,
+                        'message': 'Контакт не найден'
+                    }, status=404)
         except Exception as e:
             return JsonResponse({
                 'success': False,
-                'message': f'Ошибка при добавлении контакта: {str(e)}'
+                'message': f'Ошибка при обработке запроса: {str(e)}'
             }, status=400)
 
     return render(request, 'frontend/add_contact.html')
+
+
+@login_required
+def delete_contact(request):
+    """Удалить контакт"""
+    if request.method == 'DELETE':
+        try:
+            data = json.loads(request.body)
+            contact_id = data.get('contact_id')
+
+            from backend.models import Contact
+
+            try:
+                contact = Contact.objects.get(id=contact_id, user=request.user)
+                contact.delete()
+
+                return JsonResponse({
+                    'success': True,
+                    'message': 'Контакт удален'
+                })
+            except Contact.DoesNotExist:
+                return JsonResponse({
+                    'success': False,
+                    'message': 'Контакт не найден'
+                }, status=404)
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'message': f'Ошибка при удалении контакта: {str(e)}'
+            }, status=400)
+    return JsonResponse({
+        'success': False,
+        'message': 'Неверный метод запроса'
+    }, status=405)
