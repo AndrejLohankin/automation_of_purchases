@@ -7,65 +7,82 @@
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h2>Корзина</h2>
-    <span class="badge bg-primary rounded-pill">Товаров: {{ cart.items|length }}</span>
+    <span class="badge bg-primary rounded-pill cart-badge">Товаров: {{ cart.items|length }}</span>
 </div>
 
 {% if cart.items %}
-<table class="table table-hover">
-    <thead>
-        <tr>
-            <th>Товар</th>
-            <th>Модель</th>
-            <th>Количество</th>
-            <th>Цена</th>
-            <th>Сумма</th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for item in cart.items %}
-        <tr>
-            <td>
-                <div class="d-flex align-items-center">
-                    <img src="{% if item.product_info.product.image %}{{ item.product_info.product.image.url }}{% else %}{% static 'frontend/img/no-image.jpg' %}{% endif %}"
-                         alt="{{ item.product_info.product.name }}" class="me-3" style="width: 60px; height: 60px; object-fit: cover;">
-                    <div>
-                        <h6>{{ item.product_info.product.name }}</h6>
-                        <small class="text-muted">{{ item.product_info.shop.name }}</small>
-                    </div>
-                </div>
-            </td>
-            <td>{{ item.product_info.model }}</td>
-            <td>
-                <div class="input-group" style="width: 120px;">
-                    <button class="btn btn-outline-secondary btn-sm" onclick="updateQuantity({{ item.id }}, -1)">-</button>
-                    <input type="number" class="form-control text-center" id="quantity_{{ item.id }}" value="{{ item.quantity }}" min="1" max="{{ item.product_info.quantity }}">
-                    <button class="btn btn-outline-secondary btn-sm" onclick="updateQuantity({{ item.id }}, 1)">+</button>
-                </div>
-            </td>
-            <td>{{ item.product_info.price }} ₽</td>
-            <td><strong>{{ item.total_price }} ₽</strong></td>
-            <td>
-                <button class="btn btn-danger btn-sm" onclick="deleteItem({{ item.id }})">
-                    <i class="fas fa-trash"></i>
-                </button>
-            </td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
-
-<div class="row mt-4">
-    <div class="col-md-4">
+<div class="row">
+    <div class="col-md-8">
         <div class="card">
+            <div class="card-header">
+                <h5>Состав заказа</h5>
+            </div>
             <div class="card-body">
-                <h5>Итого: <span class="text-primary">{{ cart.total_price }} ₽</span></h5>
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Товар</th>
+                            <th>Модель</th>
+                            <th>Количество</th>
+                            <th>Цена</th>
+                            <th>Сумма</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in cart.items %}
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <img src="{% if item.product_info.product.image %}{{ item.product_info.product.image.url }}{% else %}{% static 'frontend/img/no-image.jpg' %}{% endif %}"
+                                         alt="{{ item.product_info.product.name }}" class="me-3" style="width: 60px; height: 60px; object-fit: cover;">
+                                    <div>
+                                        <h6>{{ item.product_info.product.name }}</h6>
+                                        <small class="text-muted">{{ item.product_info.shop.name }}</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                {% if item.product_info.model %}
+                                    {{ item.product_info.model }}
+                                {% else %}
+                                    Без модели
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="input-group" style="width: 120px;">
+                                    <button class="btn btn-outline-secondary btn-sm" onclick="updateQuantity({{ item.id }}, -1)">-</button>
+                                    <input type="number" class="form-control text-center" id="quantity_{{ item.id }}" value="{{ item.quantity }}" min="1" max="{{ item.product_info.quantity }}">
+                                    <button class="btn btn-outline-secondary btn-sm" onclick="updateQuantity({{ item.id }}, 1)">+</button>
+                                </div>
+                            </td>
+                            <td>{{ item.product_info.price }} ₽</td>
+                            <td><strong>{{ item.total_price }} ₽</strong></td>
+                            <td>
+                                <button class="btn btn-outline-danger btn-sm" onclick="deleteItem({{ item.id }})">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
-    <div class="col-md-8 text-end">
-        <button class="btn btn-danger me-2" onclick="clearCart()">Очистить корзину</button>
-        <a href="{% url 'checkout' %}" class="btn btn-primary">Оформить заказ</a>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5>Итого</h5>
+            </div>
+            <div class="card-body">
+                <h5 class="text-primary mb-3">{{ cart.total_price }} ₽</h5>
+                <div class="d-grid">
+                    <a href="{% url 'checkout' %}" class="btn btn-primary">Оформить заказ</a>
+                    <button class="btn btn-outline-secondary" onclick="clearCart()">Очистить корзину</button>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -80,6 +97,36 @@
 
 {% block extra_js %}
 <script>
+// Уведомления
+function showNotification(message, type) {
+    const notification = document.createElement('div');
+    notification.className = `alert alert-${type === 'success' ? 'success' : 'danger'} alert-dismissible fade show position-fixed`;
+    notification.style.cssText = 'z-index: 9999; top: 20px; right: 20px; min-width: 300px;';
+    notification.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    document.body.appendChild(notification);
+    setTimeout(() => notification.remove(), 3000);
+}
+
+// Получение CSRF токена
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+// Обновление количества товара
 function updateQuantity(orderItemId, change) {
     const quantityInput = document.getElementById(`quantity_${orderItemId}`);
     const newQuantity = parseInt(quantityInput.value) + change;
@@ -108,6 +155,7 @@ function updateQuantity(orderItemId, change) {
     });
 }
 
+// Удаление товара из корзины
 function deleteItem(orderItemId) {
     if (!confirm('Вы уверены, что хотите удалить этот товар из корзины?')) {
         return;
@@ -135,6 +183,7 @@ function deleteItem(orderItemId) {
     });
 }
 
+// Очистка всей корзины
 function clearCart() {
     if (!confirm('Вы уверены, что хотите очистить корзину?')) {
         return;
@@ -149,7 +198,10 @@ function clearCart() {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            location.reload();
+            showNotification(data.message, 'success');
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000);
         } else {
             showNotification(data.message, 'error');
         }
@@ -159,5 +211,62 @@ function clearCart() {
         showNotification('Ошибка при очистке корзины', 'error');
     });
 }
+
+// Обновление счетчика корзины
+function updateCartBadge() {
+    const cartBadge = document.querySelector('.cart-badge');
+    if (cartBadge) {
+        const cartUrl = '{% url "cart" %}';
+        fetch(cartUrl, {
+            method: 'GET',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken')
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.cart && data.cart.items) {
+                cartBadge.textContent = `Товаров: ${data.cart.items.length}`;
+            }
+        })
+        .catch(error => {
+            console.error('Ошибка при обновлении корзины:', error);
+        });
+    }
+}
+
+// Обработка кнопок "В корзину" на странице товаров
+document.addEventListener('DOMContentLoaded', function() {
+    const addToCartButtons = document.querySelectorAll('.add-to-cart');
+
+    addToCartButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const productInfoId = this.dataset.productInfoId;
+            const quantity = 1;
+
+            fetch('{% url "add_to_cart" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': document.querySelector('input[name=csrfmiddlewaretoken]')?.value || getCookie('csrftoken')
+                },
+                body: `product_info_id=${productInfoId}&quantity=${quantity}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    updateCartBadge();
+                    showNotification('Товар добавлен в корзину', 'success');
+                } else {
+                    showNotification(data.message, 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Ошибка:', error);
+                showNotification('Ошибка при добавлении товара', 'error');
+            });
+        });
+    });
+});
 </script>
 {% endblock %}

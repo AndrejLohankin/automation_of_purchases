@@ -139,6 +139,15 @@ def cart(request):
         item.total_price = item.product_info.price * item.quantity
         total_price += item.total_price
 
+    # Проверяем, если это AJAX запрос
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        return JsonResponse({
+            'cart': {
+                'items': list(items.values('id', 'quantity')),
+                'total_price': total_price
+            }
+        })
+
     return render(request, 'frontend/cart.html', {
         'cart': {
             'items': items,

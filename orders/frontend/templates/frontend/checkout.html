@@ -73,10 +73,6 @@
                 <form method="post" action="{% url 'checkout' %}">
                     {% csrf_token %}
                     <div class="mb-3">
-                        <label for="basket_id" class="form-label">ID корзины</label>
-                        <input type="text" class="form-control" id="basket_id" name="basket_id" value="{{ cart.id }}" readonly>
-                    </div>
-                    <div class="mb-3">
                         <label for="contact_id" class="form-label">Выберите контакт</label>
                         <select class="form-select" id="contact_id" name="contact_id" required>
                             <option value="">Выберите контакт</option>

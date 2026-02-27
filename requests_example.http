@@ -160,6 +160,15 @@ Content-Type: application/json
     "state": "delivered"
 }
 
+### Доступные статусы:
+# - `basket` - корзина
+# - `new` - новый
+# - `confirmed` - подтвержден
+# - `assembled` - собран
+# - `sent` - отправлен
+# - `delivered` - доставлен
+# - `canceled` - отменен
+
 ### --- экспорт товаров ---
 GET {{baseUrl}}/products/export/
 
@@ -173,7 +182,6 @@ Content-Type: application/json
 }
 
 ### --- экспорт товаров по нескольким магазинам ---
-
 POST {{baseUrl}}/products/export/filtered/
 Content-Type: application/json
 
