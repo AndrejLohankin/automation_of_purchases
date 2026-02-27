@@ -392,37 +392,15 @@ def orders(request):
 @login_required
 def order_detail(request, order_id):
     """Детальная страница заказа"""
+    # Получаем заказ напрямую из базы данных
     from backend.models import Order, OrderItem
 
     try:
-        order = Order.objects.select_related('user', 'contact').prefetch_related(
+        order = Order.objects.select_related('user').prefetch_related(
             'ordered_items__product_info__product'
         ).get(id=order_id, user=request.user)
 
-        print(f"DEBUG: Order detail - Order ID: {order.id}")
-        print(f"DEBUG: Order state: {order.state}")
-        print(f"DEBUG: Contact ID: {order.contact_id}")
-
-        if order.contact:
-            print(f"DEBUG: Contact exists: {order.contact.city}, {order.contact.street}")
-        else:
-            print("DEBUG: Contact is None")
-
-        # Проверяем ordered_items
-        items = order.ordered_items.all()
-        print(f"DEBUG: Number of items in order: {items.count()}")
-
-        for item in items:
-            print(f"DEBUG: Item ID: {item.id}, Quantity: {item.quantity}")
-            if item.product_info:
-                print(f"DEBUG: Product Info ID: {item.product_info.id}, Price: {item.product_info.price}")
-                if item.product_info.product:
-                    print(f"DEBUG: Product Name: {item.product_info.product.name}")
-                else:
-                    print("DEBUG: Product Info has no product")
-            else:
-                print("DEBUG: Item has no product_info")
-
+        items = order.ordered_items.select_related('product_info__product').all()
         order_items = []
         for item in items:
             item_data = {
@@ -445,7 +423,12 @@ def order_detail(request, order_id):
             'state': order.state,
             'items': order_items,
             'total_price': sum(item['total_price'] for item in order_items),
-            'contact': order.contact
+            'contact': order.contact,
+            'user': {
+                'email': order.user.email,
+                'company': order.user.company,
+                'position': order.user.position
+            }
         }
 
         return render(request, 'frontend/order_detail.html', {'order': order_data})
