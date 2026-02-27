@@ -42,7 +42,7 @@ def register_view(request):
     """Регистрация пользователя"""
     if request.method == 'POST':
         form = RegistrationForm(request.POST)
-        if form.is_valid:
+        if form.is_valid():
             # Создаем пользователя напрямую
             user = form.save()
             # Автоматически логинем пользователя после регистрации
@@ -53,7 +53,6 @@ def register_view(request):
     else:
         form = RegistrationForm()
     return render(request, 'frontend/register.html', {'form': form})
-
 
 @login_required
 def products(request):

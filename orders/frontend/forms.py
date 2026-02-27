@@ -28,6 +28,9 @@ class RegistrationForm(forms.Form):
 
     def save(self):
         """Создает нового пользователя"""
+        if not self.is_valid():
+            raise ValueError('Form data is not valid')
+
         data = self.cleaned_data
         user = User.objects.create_user(
             email=data['email'],

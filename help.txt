@@ -9,6 +9,8 @@ celery -A celery_app worker --loglevel=info
 python manage.py createsuperuser
 2@mail.ru
 brigbrig
+Ray_Anderson@mail.com
+Ray_Anderson@mail
 python manage.py load_db ../data/shop1.yaml
 python manage.py runserver
 
