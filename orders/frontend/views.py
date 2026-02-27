@@ -9,7 +9,7 @@ from .forms import RegistrationForm, ContactForm
 from django.conf import settings
 from backend.models import User
 from django.db.models import Sum
-
+import json
 
 @csrf_exempt
 def home(request):
@@ -439,7 +439,66 @@ def order_detail(request, order_id):
 @login_required
 def profile(request):
     """Профиль пользователя"""
-    return render(request, 'frontend/profile.html')
+    if request.method == 'PUT':
+        # Обрабатываем обновление профиля
+        try:
+            data = json.loads(request.body)
+            user = request.user
+
+            # Обновляем поля профиля
+            if 'first_name' in data:
+                user.first_name = data['first_name']
+            if 'last_name' in data:
+                user.last_name = data['last_name']
+            if 'company' in data:
+                user.company = data['company']
+            if 'position' in data:
+                user.position = data['position']
+
+            user.save()
+
+            return JsonResponse({
+                'success': True,
+                'message': 'Профиль обновлен'
+            })
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'message': f'Ошибка при обновлении профиля: {str(e)}'
+            }, status=400)
+
+    # Для GET запроса показываем профиль
+    from backend.models import Contact, Order
+    from django.db.models import Sum
+
+    # Получаем контакты
+    contacts = request.user.contacts.all()
+
+    # Получаем статистику заказов
+    orders = Order.objects.filter(user=request.user).exclude(state='basket')
+    orders_count = orders.count()
+
+    # Рассчитываем общую сумму потраченных денег
+    total_spent = 0
+    for order in orders:
+        items = order.ordered_items.all()
+        order_total = sum(item.quantity * item.product_info.price for item in items)
+        total_spent += order_total
+
+    average_order = total_spent / orders_count if orders_count > 0 else 0
+    pending_orders = orders.filter(state='confirmed').count()
+
+    # Получаем последние заказы
+    recent_orders = orders.order_by('-dt')[:5]
+
+    return render(request, 'frontend/profile.html', {
+        'contacts': contacts,
+        'orders_count': orders_count,
+        'total_spent': total_spent,
+        'average_order': average_order,
+        'pending_orders': pending_orders,
+        'recent_orders': recent_orders
+    })
 
 
 @login_required
@@ -464,6 +523,15 @@ def add_contact(request):
         # Создаем новый контакт
         from backend.models import Contact
 
+        # Устанавливаем значения по умолчанию для пустых полей
+        city = city if city else ''
+        street = street if street else ''
+        house = house if house else ''
+        structure = structure if structure else ''
+        building = building if building else ''
+        apartment = apartment if apartment else ''
+        phone = phone if phone else ''
+
         contact = Contact.objects.create(
             user=request.user,
             city=city,
@@ -477,5 +545,44 @@ def add_contact(request):
 
         # Возвращаемся на страницу оформления заказа
         return redirect('checkout')
+
+    # Для AJAX запроса
+    elif request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        try:
+            data = json.loads(request.body)
+
+            # Создаем новый контакт
+            from backend.models import Contact
+
+            # Устанавливаем значения по умолчанию для пустых полей
+            city = data.get('city', '')
+            street = data.get('street', '')
+            house = data.get('house', '')
+            structure = data.get('structure', '')
+            building = data.get('building', '')
+            apartment = data.get('apartment', '')
+            phone = data.get('phone', '')
+
+            contact = Contact.objects.create(
+                user=request.user,
+                city=city,
+                street=street,
+                house=house,
+                structure=structure,
+                building=building,
+                apartment=apartment,
+                phone=phone
+            )
+
+            return JsonResponse({
+                'success': True,
+                'message': 'Контакт добавлен',
+                'contact_id': contact.id
+            })
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'message': f'Ошибка при добавлении контакта: {str(e)}'
+            }, status=400)
 
     return render(request, 'frontend/add_contact.html')
