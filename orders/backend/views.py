@@ -525,40 +525,55 @@ class ProductExportView(APIView):
             )
 
             # Создаем структуру данных для экспорта
-            export_data = {
-                'shop': 'Default Shop',
-                'categories': [],
-                'goods': []
-            }
+            export_data = []
 
-            # Собираем уникальные категории
-            categories_set = set()
-            for product_info in products:
-                if product_info.product.category:
-                    categories_set.add(product_info.product.category)
+            # Группируем товары по магазинам
+            shops = products.values('shop__name').distinct()
 
-            # Добавляем категории
-            for category in categories_set:
-                export_data['categories'].append({
-                    'id': category.id,
-                    'name': category.name
-                })
+            for shop in shops:
+                shop_name = shop['shop__name'] if shop['shop__name'] else 'Default Shop'
 
-            # Добавляем товары
-            for product_info in products:
-                # Собираем параметры товара
-                parameters = {}
-                for param in product_info.product_parameters.all():
-                    parameters[param.parameter.name] = param.value
+                # Получаем товары для текущего магазина
+                shop_products = products.filter(shop__name=shop_name)
 
-                export_data['goods'].append({
-                    'id': product_info.external_id,
-                    'name': product_info.product.name,
-                    'category': product_info.product.category.id if product_info.product.category else None,
-                    'quantity': product_info.quantity,
-                    'price': product_info.price,
-                    'parameters': parameters
-                })
+                # Создаем структуру для текущего магазина
+                shop_data = {
+                    'shop': shop_name,
+                    'categories': [],
+                    'goods': []
+                }
+
+                # Собираем уникальные категории
+                categories_set = set()
+                for product_info in shop_products:
+                    if product_info.product.category:
+                        categories_set.add(product_info.product.category)
+
+                # Добавляем категории
+                for category in categories_set:
+                    shop_data['categories'].append({
+                        'id': category.id,
+                        'name': category.name
+                    })
+
+                # Добавляем товары
+                for product_info in shop_products:
+                    # Собираем параметры товара
+                    parameters = {}
+                    for param in product_info.product_parameters.all():
+                        parameters[param.parameter.name] = param.value
+
+                    shop_data['goods'].append({
+                        'id': product_info.external_id,
+                        'name': product_info.product.name,
+                        'category': product_info.product.category.id if product_info.product.category else None,
+                        'quantity': product_info.quantity,
+                        'price': product_info.price,
+                        'parameters': parameters
+                    })
+
+                # Добавляем структуру магазина в общий экспорт
+                export_data.append(shop_data)
 
             # Конвертируем в YAML с правильными отступами
             yaml_data = yaml.dump(export_data, sort_keys=False, indent=2)
@@ -573,7 +588,8 @@ class ProductExportView(APIView):
                 stream,
                 content_type='application/x-yaml; charset=utf-8'
             )
-            response['Content-Disposition'] = f'attachment; filename="export_{datetime.now().strftime("%Y%m%d_%H%M%S")}.yaml"'
+            response[
+                'Content-Disposition'] = f'attachment; filename="export_{datetime.now().strftime("%Y%m%d_%H%M%S")}.yaml"'
 
             return response
 
@@ -599,40 +615,55 @@ def export_products(request):
             queryset = queryset.filter(product__category_id=category_id)
 
         # Создаем структуру данных для экспорта
-        export_data = {
-            'shop': 'Default Shop',
-            'categories': [],
-            'goods': []
-        }
+        export_data = []
 
-        # Собираем уникальные категории
-        categories_set = set()
-        for product_info in queryset:
-            if product_info.product.category:
-                categories_set.add(product_info.product.category)
+        # Группируем товары по магазинам
+        shops = queryset.values('shop__name').distinct()
 
-        # Добавляем категории
-        for category in categories_set:
-            export_data['categories'].append({
-                'id': category.id,
-                'name': category.name
-            })
+        for shop in shops:
+            shop_name = shop['shop__name'] if shop['shop__name'] else 'Default Shop'
 
-        # Добавляем товары
-        for product_info in queryset:
-            # Собираем параметры товара
-            parameters = {}
-            for param in product_info.product_parameters.all():
-                parameters[param.parameter.name] = param.value
+            # Получаем товары для текущего магазина
+            shop_products = queryset.filter(shop__name=shop_name)
 
-            export_data['goods'].append({
-                'id': product_info.external_id,
-                'name': product_info.product.name,
-                'category': product_info.product.category.id if product_info.product.category else None,
-                'quantity': product_info.quantity,
-                'price': product_info.price,
-                'parameters': parameters
-            })
+            # Создаем структуру для текущего магазина
+            shop_data = {
+                'shop': shop_name,
+                'categories': [],
+                'goods': []
+            }
+
+            # Собираем уникальные категории
+            categories_set = set()
+            for product_info in shop_products:
+                if product_info.product.category:
+                    categories_set.add(product_info.product.category)
+
+            # Добавляем категории
+            for category in categories_set:
+                shop_data['categories'].append({
+                    'id': category.id,
+                    'name': category.name
+                })
+
+            # Добавляем товары
+            for product_info in shop_products:
+                # Собираем параметры товара
+                parameters = {}
+                for param in product_info.product_parameters.all():
+                    parameters[param.parameter.name] = param.value
+
+                shop_data['goods'].append({
+                    'id': product_info.external_id,
+                    'name': product_info.product.name,
+                    'category': product_info.product.category.id if product_info.product.category else None,
+                    'quantity': product_info.quantity,
+                    'price': product_info.price,
+                    'parameters': parameters
+                })
+
+            # Добавляем структуру магазина в общий экспорт
+            export_data.append(shop_data)
 
         # Конвертируем в YAML
         yaml_data = yaml.dump(export_data, sort_keys=False)
@@ -647,7 +678,8 @@ def export_products(request):
             stream,
             content_type='application/x-yaml; charset=utf-8'
         )
-        response['Content-Disposition'] = f'attachment; filename="filtered_export_{datetime.now().strftime("%Y%m%d_%H%M%S")}.yaml"'
+        response[
+            'Content-Disposition'] = f'attachment; filename="filtered_export_{datetime.now().strftime("%Y%m%d_%H%M%S")}.yaml"'
 
         return response
 
