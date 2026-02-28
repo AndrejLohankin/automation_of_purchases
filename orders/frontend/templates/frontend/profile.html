@@ -40,9 +40,6 @@
                             <small class="text-muted">{{ contact.phone }}</small>
                         </div>
                         <div>
-                                <button class="btn btn-sm btn-outline-primary edit-contact" data-contact-id="{{ contact.id }}">
-                                    <i class="fas fa-edit"></i>
-                                </button>
                                 <button class="btn btn-sm btn-outline-danger delete-contact" data-contact-id="{{ contact.id }}">
                                     <i class="fas fa-trash"></i>
                                 </button>
@@ -53,9 +50,6 @@
             {% else %}}
                     <p class="text-muted">Контакты не добавлены</p>
                 {% endif %}
-                <button class="btn btn-success btn-sm w-100" data-bs-toggle="modal" data-bs-target="#addContactModal">
-                    <i class="fas fa-plus"></i> Добавить контакт
-                </button>
             </div>
         </div>
     </div>
