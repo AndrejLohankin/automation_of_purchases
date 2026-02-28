@@ -11,7 +11,7 @@
 ```bash
 # Сборка и запуск контейнеров
 cd orders
-docker-compose up --build
+docker-compose up -d --build
 
 # Остановка контейнеров
 docker-compose down
@@ -23,7 +23,7 @@ docker-compose down
 
 ```bash
 # Войти в контейнер
-docker-compose exec web bash
+docker-compose exec django bash
 
 # Выполнить миграции
 python manage.py migrate
