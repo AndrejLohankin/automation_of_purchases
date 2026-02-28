@@ -4,11 +4,7 @@ from django.contrib.auth import login, authenticate
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-import requests
 from .forms import RegistrationForm, ContactForm
-from django.conf import settings
-from backend.models import User
-from django.db.models import Sum
 import json
 
 
@@ -62,7 +58,7 @@ def products(request):
     page = request.GET.get('page', 1)
     category = request.GET.get('category')
     search = request.GET.get('search')
-    sort = request.GET.get('sort', 'name')  # Добавляем сортировку
+    sort = request.GET.get('sort', 'name')
 
     # Получаем товары напрямую из базы данных
     from backend.models import ProductInfo, Category
@@ -87,7 +83,7 @@ def products(request):
 
     # Пагинация
     from django.core.paginator import Paginator
-    paginator = Paginator(products, 12)  # 12 товаров на страницу
+    paginator = Paginator(products, 12)
     products_page = paginator.get_page(page)
 
     # Получаем категории для фильтра

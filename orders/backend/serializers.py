@@ -163,8 +163,6 @@ class OrderHistorySerializer(serializers.ModelSerializer):
         return None
 
 
-# --- НОВЫЙ КОД ДЛЯ РЕДАКТИРОВАНИЯ СТАТУСА ЗАКАЗА ---
-
 class OrderStatusUpdateSerializer(serializers.Serializer):
     state = serializers.ChoiceField(choices=STATE_CHOICES, required=True)
 

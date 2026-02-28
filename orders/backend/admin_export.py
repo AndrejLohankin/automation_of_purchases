@@ -3,9 +3,7 @@
 from django.contrib import admin, messages
 from django.shortcuts import render, redirect
 from django.urls import path
-from django.utils.html import format_html
 import yaml
-from django.core.files.storage import default_storage
 from .models import (
     User, Shop, Category, Product, ProductInfo, Parameter,
     ProductParameter, Order, OrderItem, Contact, ConfirmEmailToken, ImportTask

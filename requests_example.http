@@ -11,10 +11,10 @@ POST {{baseUrl}}/register/
 Content-Type: application/json
 
 {
-    "first_name": "Test4",
-    "last_name": "User4",
-    "email": "testuser@example4.com",
-    "password": "securepassword1234"
+    "first_name": "Test5",
+    "last_name": "User5",
+    "email": "testuser@example5.com",
+    "password": "securepassword1235"
 }
 
 ### --- Вход ---
@@ -24,8 +24,8 @@ POST {{baseUrl}}/login/
 Content-Type: application/json
 
 {
-    "email": "testuser@example4.com",
-    "password": "securepassword1234"
+    "email": "testuser@example5.com",
+    "password": "securepassword1235"
 }
 
 ### --- Вход ---
@@ -42,6 +42,12 @@ Content-Type: application/json
 ### --- Список товаров ---
 # GET /api/v1/products/
 GET {{baseUrl}}/products/
+Accept: application/json
+
+### --- Спецификация товара ---
+# GET /api/v1/products/{product_info_id}/
+# Получает спецификацию товара
+GET {{baseUrl}}/products/6/
 Accept: application/json
 
 ### --- Фильтрация списка товаров ---
@@ -66,54 +72,11 @@ Content-Type: application/json
 GET {{baseUrl}}/basket/
 Accept: application/json
 
-### --- Добавление контакта ---
-# POST /api/v1/contacts/
-# Добавляет контакт текущему аутентифицированному пользователю
-POST {{baseUrl}}/contacts/
-Content-Type: application/json
-
-{
-    "city": "Moscow",
-    "street": "Tverskaya",
-    "house": "3",
-    "phone": "+71234567890"
-}
-
-### --- Подтверждение заказа ---
-# POST /api/v1/orders/confirm/
-# Замените basket_id и contact_id на реальные ID
-# basket_id - это ID заказа со статусом 'basket'
-# contact_id - это ID контакта, добавленного пользователем
-POST {{baseUrl}}/orders/confirm/
-Content-Type: application/json
-
-{
-    "basket_id": 6,
-    "contact_id": 3
-}
-
-### --- История заказов ---
-# GET /api/v1/orders/history/
-GET {{baseUrl}}/orders/history/
-Accept: application/json
-
 ### --- Удаление товара из корзины ---
 # DELETE /api/v1/cart/delete/
 # Удаляет товар из корзины по ID
 DELETE {{baseUrl}}/cart/delete/?order_item_id=12
 # Куки автоматически подставляются из cookie_jar
-
-### --- Детальный просмотр контактов ---
-# GET /api/v1/contacts/detailed/
-# Получает детальный список контактов с фильтрацией
-GET {{baseUrl}}/contacts/detailed/
-Accept: application/json
-
-### --- Просмотр конкретного контакта ---
-# GET /api/v1/contacts/{contact_id}/
-# Получает детальную информацию о конкретном контакте
-GET {{baseUrl}}/contacts/2/
-Accept: application/json
 
 ### --- Удаление нескольких товаров из корзины ---
 # POST /api/v1/cart/delete-batch/
@@ -132,11 +95,54 @@ Content-Type: application/json
 DELETE {{baseUrl}}/cart/clear/
 # Куки автоматически подставляются из cookie_jar
 
+### --- Добавление контакта ---
+# POST /api/v1/contacts/
+# Добавляет контакт текущему аутентифицированному пользователю
+POST {{baseUrl}}/contacts/
+Content-Type: application/json
+
+{
+    "city": "Moscow",
+    "street": "Kolomenskay",
+    "house": "3",
+    "phone": "+71234567890"
+}
+
 ### --- Удаление контакта ---
 # DELETE /api/v1/contacts/delete/
 # Удаляет контакт по ID
 DELETE {{baseUrl}}/contacts/delete/?contact_id=2
 # Куки автоматически подставляются из cookie_jar
+
+### --- Детальный просмотр контактов ---
+# GET /api/v1/contacts/detailed/
+# Получает детальный список контактов с фильтрацией
+GET {{baseUrl}}/contacts/detailed/
+Accept: application/json
+
+### --- Просмотр конкретного контакта ---
+# GET /api/v1/contacts/{contact_id}/
+# Получает детальную информацию о конкретном контакте
+GET {{baseUrl}}/contacts/36/
+Accept: application/json
+
+### --- Подтверждение заказа ---
+# POST /api/v1/orders/confirm/
+# Замените basket_id и contact_id на реальные ID
+# basket_id - это ID заказа со статусом 'basket'
+# contact_id - это ID контакта, добавленного пользователем
+POST {{baseUrl}}/orders/confirm/
+Content-Type: application/json
+
+{
+    "basket_id": 13,
+    "contact_id": 36
+}
+
+### --- История заказов ---
+# GET /api/v1/orders/history/
+GET {{baseUrl}}/orders/history/
+Accept: application/json
 
 ### --- Детали заказа ---
 # GET /api/v1/orders/{order_id}/
@@ -144,11 +150,6 @@ DELETE {{baseUrl}}/contacts/delete/?contact_id=2
 GET {{baseUrl}}/orders/6/
 Accept: application/json
 
-### --- Спецификация товара ---
-# GET /api/v1/products/{product_info_id}/
-# Получает спецификацию товара
-GET {{baseUrl}}/products/6/
-Accept: application/json
 
 ### --- Редактирование статуса заказа ---
 # PUT /api/v1/orders/{order_id}/status/

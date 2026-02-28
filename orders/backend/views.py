@@ -3,7 +3,7 @@
 from django.shortcuts import get_object_or_404
 from django.contrib.auth import login
 from rest_framework import generics, status
-from rest_framework.response import Response
+
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from .models import Shop, Category, Product, ProductInfo, Order, OrderItem, Contact
@@ -225,7 +225,6 @@ class OrderConfirmationView(APIView):
             basket.contact = contact
             basket.save()
 
-            # --- НОВЫЙ КОД ---
             # Запускаем задачу на отправку email через Celery
             from .tasks import send_order_confirmation_email
             task = send_order_confirmation_email.delay(basket.id, contact.id)
@@ -384,10 +383,6 @@ class ContactDetailView(generics.RetrieveAPIView):
         contact_id = self.kwargs.get('contact_id')
         return get_object_or_404(self.get_queryset(), id=contact_id)
 
-
-# --- КОНЕЦ НОВОГО КОДА ---
-
-# --- УЛУЧШЕННЫЙ КОД ДЛЯ УДАЛЕНИЯ ТОВАРОВ ---
 
 class BatchDeleteCartItemView(APIView):
     """

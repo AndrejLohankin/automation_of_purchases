@@ -1,0 +1,207 @@
+shop: Оптом.ру
+categories:
+  - id: 301
+    name: Ноутбуки
+  - id: 302
+    name: Компьютеры
+  - id: 303
+    name: Смартфоны
+  - id: 304
+    name: Планшеты
+  - id: 305
+    name: Телевизоры
+  - id: 306
+    name: Аудиотехника
+  - id: 307
+    name: Игровые приставки
+
+
+goods:
+  - id: 3001
+    category: 301
+    model: asus/rog-zephyrus-g14
+    name: Ноутбук ASUS ROG Zephyrus G14 (GA401II-211T)
+    price: 95000
+    price_rrc: 99990
+    quantity: 6
+    parameters:
+      "Процессор": AMD Ryzen 9 5900HS
+      "Оперативная память": 16 ГБ
+      "Диагональ экрана": 14"
+      "Разрешение экрана": 2560x1440
+      "Тип матрицы": IPS
+      "Цвет": серый
+  - id: 3002
+    category: 301
+    model: lenovo/legion-5-pro
+    name: Ноутбук Lenovo Legion 5 Pro (82JT007URK)
+    price: 110000
+    price_rrc: 119990
+    quantity: 8
+    parameters:
+      "Процессор": AMD Ryzen 7 5800H
+      "Оперативная память": 32 ГБ
+      "Диагональ экрана": 16"
+      "Разрешение экрана": 2560x1600
+      "Тип матрицы": IPS
+      "Цвет": черный
+  - id: 3003
+    category: 302
+    model: apple/mac-mini-m1
+    name: Компьютер Apple Mac mini (MGG63RU/A)
+    price: 85000
+    price_rrc: 89990
+    quantity: 10
+    parameters:
+      "Процессор": Apple M1
+      "Оперативная память": 8 ГБ
+      "Тип памяти": SSD
+      "Объем памяти": 256 ГБ
+      "Цвет": серый
+  - id: 3004
+    category: 302
+    model: hp/pavilion-gaming-690
+    name: Компьютер HP Pavilion Gaming 690-0003ur
+    price: 75000
+    price_rrc: 79990
+    quantity: 12
+    parameters:
+      "Процессор": AMD Ryzen 5 5600X
+      "Оперативная память": 16 ГБ
+      "Тип памяти": SSD
+      "Объем памяти": 512 ГБ
+      "Цвет": черный
+  - id: 3005
+    category: 303
+    model: samsung/galaxy-s21-ultra
+    name: Смартфон Samsung Galaxy S21 Ultra 5G (SM-G998B)
+    price: 95000
+    price_rrc: 99990
+    quantity: 15
+    parameters:
+      "Процессор": Exynos 2100
+      "Оперативная память": 12 ГБ
+      "Диагональ экрана": 6.8"
+      "Разрешение экрана": 3200x1440
+      "Тип матрицы": Dynamic AMOLED 2X
+      "Цвет": черный
+  - id: 3006
+    category: 303
+    model: apple/iphone-13-pro
+    name: Смартфон Apple iPhone 13 Pro (128GB)
+    price: 105000
+    price_rrc: 109990
+    quantity: 18
+    parameters:
+      "Процессор": Apple A15 Bionic
+      "Оперативная память": 6 ГБ
+      "Диагональ экрана": 6.1"
+      "Разрешение экрана": 2532x1170
+      "Тип матрицы": Super Retina XDR OLED
+      "Цвет": графит
+  - id: 3007
+    category: 304
+    model: apple/ipad-pro-11-2020
+    name: Планшет Apple iPad Pro 11" (2020) (128GB)
+    price: 85000
+    price_rrc: 89990
+    quantity: 10
+    parameters:
+      "Процессор": Apple A12Z Bionic
+      "Оперативная память": 6 ГБ
+      "Диагональ экрана": 11"
+      "Разрешение экрана": 2388x1668
+      "Тип матрицы": IPS
+      "Цвет": серебристый
+  - id: 3008
+    category: 304
+    model: samsung/galaxy-tab-s7+
+    name: Планшет Samsung Galaxy Tab S7+ (SM-T970)
+    price: 75000
+    price_rrc: 79990
+    quantity: 8
+    parameters:
+      "Процессор": Snapdragon 865+
+      "Оперативная память": 6 ГБ
+      "Диагональ экрана": 12.4"
+      "Разрешение экрана": 2800x1752
+      "Тип матрицы": Super AMOLED
+      "Цвет": черный
+  - id: 3009
+    category: 305
+    model: samsung/ue-55-tu8500
+    name: Телевизор Samsung UE-55TU8500 (65", 4K UHD)
+    price: 65000
+    price_rrc: 69990
+    quantity: 12
+    parameters:
+      "Диагональ экрана": 55"
+      "Разрешение": 3840x2160
+      "Тип матрицы": VA
+      "Smart TV": да
+      "Цвет": черный
+  - id: 3010
+    category: 305
+    model: lg/55nano75
+    name: Телевизор LG 55NANO75 (55", 4K UHD)
+    price: 58000
+    price_rrc: 62990
+    quantity: 10
+    parameters:
+      "Диагональ экрана": 55"
+      "Разрешение": 3840x2160
+      "Тип матрицы": IPS
+      "Smart TV": да
+      "Цвет": серебристый
+  - id: 3011
+    category: 306
+    model: sony/wh-1000xm4
+    name: Наушники Sony WH-1000XM4 (беспроводные)
+    price: 28000
+    price_rrc: 29990
+    quantity: 20
+    parameters:
+      "Тип": накладные
+      "Беспроводной": да
+      "Активное шумоподавление": да
+      "Время работы": 30 часов
+      "Цвет": черный
+  - id: 3012
+    category: 306
+    model: apple/airpods-pro
+    name: Наушники Apple AirPods Pro
+    price: 18000
+    price_rrc: 19990
+    quantity: 25
+    parameters:
+      "Тип": внутриканальные
+      "Беспроводной": да
+      "Активное шумоподавление": да
+      "Водонепроницаемость": IPX4
+      "Цвет": белый
+  - id: 3013
+    category: 307
+    model: sony/ps5
+    name: Игровая приставка Sony PlayStation 5
+    price: 55000
+    price_rrc: 59990
+    quantity: 5
+    parameters:
+      "Тип": игровая консоль
+      "Поддержка 4K": да
+      "Поддержка 8K": да
+      "SSD": да
+      "Цвет": белый
+  - id: 3014
+    category: 307
+    model: microsoft/xbox-series-x
+    name: Игровая приставка Microsoft Xbox Series X
+    price: 52000
+    price_rrc: 54990
+    quantity: 7
+    parameters:
+      "Тип": игровая консоль
+      "Поддержка 4K": да
+      "Поддержка 8K": да
+      "SSD": да
+      "Цвет": черный

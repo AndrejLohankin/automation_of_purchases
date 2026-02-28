@@ -1,13 +1,13 @@
 # backend/tasks.py
 
-from celery import shared_task  # <-- В начало файла
+from celery import shared_task
 from django.core.mail import send_mail
 from django.conf import settings
 from .models import Order, User, ConfirmEmailToken, ImportTask
 import yaml
 
 
-@shared_task  # <-- Добавь этот декоратор
+@shared_task
 def send_registration_confirmation_email(user_email, user_id=None):
     """
     Отправляет письмо для подтверждения регистрации.
@@ -39,7 +39,7 @@ def send_registration_confirmation_email(user_email, user_id=None):
         return False
 
 
-@shared_task  # <-- Добавь этот декоратор
+@shared_task
 def send_order_confirmation_email(order_id, contact_id):
     """
     Отправляет письмо с подтверждением заказа.
@@ -68,7 +68,7 @@ def send_order_confirmation_email(order_id, contact_id):
         return False
 
 
-@shared_task  # <-- Добавь этот декоратор
+@shared_task
 def do_import(import_task_id):
     """Асинхронный импорт товаров из YAML"""
     from .models import Shop, Category, Product, ProductInfo, Parameter, ProductParameter

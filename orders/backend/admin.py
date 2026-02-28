@@ -3,7 +3,6 @@ from django.shortcuts import render, redirect
 from django.utils.html import format_html
 import yaml
 from django.urls import path
-from django.core.files.storage import default_storage
 from .models import (
     User, Shop, Category, Product, ProductInfo, Parameter,
     ProductParameter, Order, OrderItem, Contact, ConfirmEmailToken, ImportTask
@@ -115,7 +114,7 @@ class ImportTaskAdmin(admin.ModelAdmin):
                     # Просто сохраняем файл!
                     import_task = ImportTask.objects.create(
                         yaml_file=yaml_file,
-                        is_processed=False,  # <-- False, ещё не обработан
+                        is_processed=False,
                         products_count=0,
                         categories_count=0,
                         parameters_count=0
