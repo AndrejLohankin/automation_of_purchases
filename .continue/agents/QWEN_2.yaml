@@ -1,0 +1,41 @@
+# This is an example configuration file
+name: QWEN_2
+version: 1.0.0
+schema: v1
+models:
+
+  - name: Arcee AI Trinity Large Preview (free)
+    provider: openrouter
+    model: arcee-ai/trinity-large-preview:free
+    apiKey: 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
+
+  - name: step-3.5-flash:free
+    provider: openrouter
+    model: stepfun/step-3.5-flash:free
+    apiKey: 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
+
+  - name: qwen3-235b-a22b-thinking-2507
+    provider: openrouter
+    model: qwen/qwen3-235b-a22b-thinking-2507
+    apiKey: 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
+
+  - name: qwen3-coder:free
+    provider: openrouter
+    model: qwen/qwen3-coder:free
+    apiKey: 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
+
+
+
+#    sk-1bBYHmf7TZlN7_99FhFH9yCxUugiTgrS
+
+
+context:
+  - provider: code
+  - provider: docs
+  - provider: diff
+  - provider: terminal
+  - provider: problems
+  - provider: folder
+  - provider: codebase
+  - provider: tree
+  - provider: repo-map

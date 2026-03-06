@@ -118,7 +118,6 @@ venv.bak/
 # mypy
 .mypy_cache/
 
-.continue/
 QWEN_2.yaml
 reference/
 README_TASK.md
