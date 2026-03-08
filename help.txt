@@ -35,3 +35,5 @@ docker-compose exec django bash
 
 # Запустить все тесты
 python manage.py test
+docker-compose exec django python manage.py test
+python -m pytest orders/backend/test_api.py -v --tb=short

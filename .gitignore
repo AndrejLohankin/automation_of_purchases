@@ -120,4 +120,5 @@ venv.bak/
 
 QWEN_2.yaml
 reference/
+agents/
 README_TASK.md
