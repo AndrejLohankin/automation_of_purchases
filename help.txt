@@ -37,3 +37,9 @@ docker-compose exec django bash
 python manage.py test
 docker-compose exec django python manage.py test
 python -m pytest orders/backend/test_api.py -v --tb=short
+docker-compose exec django python manage.py test backend.test_api -v 1
+docker-compose exec django python manage.py test backend.test_api.ThrottlingTestCase -v 2
+docker-compose exec django python -m coverage report --include="backend/views.py"
+
+exec django bash -c "python -m coverage run --source=backend.views manage.py test backend.test_api -v 1
+python -m coverage report --include='backend/views.py'"

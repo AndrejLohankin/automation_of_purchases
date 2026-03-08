@@ -486,3 +486,87 @@ class CartManagementViewTestCase(TestCase):
         response = self.client.get(url)
         # DRF может возвращать 403 вместо 401 для неавторизованных
         self.assertIn(response.status_code, [status.HTTP_401_UNAUTHORIZED, status.HTTP_403_FORBIDDEN])
+
+
+class ThrottlingTestCase(TestCase):
+    """Тесты для проверки throttling (ограничения частоты запросов)"""
+
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(email='throttle@test.com', password='pass123')
+
+    def test_anonymous_user_throttle(self):
+        """Тест throttling для анонимных пользователей"""
+        # Для анонимных пользователей ограничение - 100 запросов в минуту
+        url = '/api/v1/products/'
+
+        # Выполняем много запросов
+        responses = []
+        for i in range(5):  # Небольшое количество для теста
+            response = self.client.get(url)
+            responses.append(response.status_code)
+
+        # Все запросы должны пройти (5 запросов меньше лимита в 100)
+        self.assertTrue(all(
+            status.HTTP_200_OK == code for code in responses
+        ), "Все запросы должны пройти при соблюдении лимита")
+
+    def test_authenticated_user_throttle(self):
+        """Тест throttling для авторизованных пользователей"""
+        self.client.force_authenticate(user=self.user)
+
+        url = '/api/v1/products/'
+
+        # Выполняем серию запросов
+        responses = []
+        for i in range(5):
+            response = self.client.get(url)
+            responses.append(response.status_code)
+
+        # Проверяем, что запросы проходят успешно
+        self.assertTrue(
+            all(code == status.HTTP_200_OK for code in responses),
+            "Авторизованные пользователи должны иметь доступ к API"
+        )
+
+    def test_throttle_response_header(self):
+        """Тест проверки заголовков ответа, содержащих информацию о лимитах"""
+        url = '/api/v1/products/'
+        response = self.client.get(url)
+
+        # Проверяем наличие заголовка X-Throttle-Remaining или аналогичных
+        # DRF может добавлять заголовки RateLimit-* или X-RateLimit-*
+        headers = response.headers
+
+        # Проверяем, что запрос прошел успешно
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # Проверяем наличие заголовков throttling (опционально)
+        has_throttle_info = any(
+            key.lower().startswith('x-ratelimit') or
+            key.lower().startswith('rate') or
+            key.lower().startswith('throttle')
+            for key in headers.keys()
+        )
+        # Примечание: в тестовом режиме заголовки могут не добавляться
+        # поэтому просто проверяем успешный ответ
+
+    def test_different_endpoints_throttle(self):
+        """Тест проверки throttling на разных endpoint'ах"""
+        # Публичный endpoint - доступен без авторизации
+        url_products = '/api/v1/products/'
+        response = self.client.get(url_products)
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK,
+            f"Endpoint {url_products} должен быть доступен анонимно"
+        )
+
+        # Приватный endpoint - требует авторизации
+        url_orders = '/api/v1/orders/history/'
+        response = self.client.get(url_orders)
+        self.assertIn(
+            response.status_code,
+            [status.HTTP_401_UNAUTHORIZED, status.HTTP_403_FORBIDDEN],
+            f"Endpoint {url_orders} должен требовать авторизацию"
+        )

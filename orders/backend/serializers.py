@@ -171,3 +171,32 @@ class OrderStatusUpdateSerializer(serializers.Serializer):
         if value not in dict(STATE_CHOICES):
             raise serializers.ValidationError(f"Недопустимый статус: {value}")
         return value
+
+class AddToCartSerializer(serializers.Serializer):
+    """Сериализатор для добавления товара в корзину"""
+    product_info_id = serializers.IntegerField()
+    quantity = serializers.IntegerField(min_value=1)
+
+
+class UpdateCartItemSerializer(serializers.Serializer):
+    """Сериализатор для обновления количества товара в корзине"""
+    order_item_id = serializers.IntegerField()
+    quantity = serializers.IntegerField(min_value=0)
+
+
+class DeleteCartItemSerializer(serializers.Serializer):
+    """Сериализатор для удаления товара из корзины"""
+    order_item_id = serializers.IntegerField(required=False)
+
+
+class BatchDeleteCartItemsSerializer(serializers.Serializer):
+    """Сериализатор для массового удаления товаров из корзины"""
+    order_item_ids = serializers.ListField(
+        child=serializers.IntegerField(),
+        allow_empty=False
+    )
+
+
+class DeleteContactSerializer(serializers.Serializer):
+    """Сериализатор для удаления контакта"""
+    contact_id = serializers.IntegerField(required=False)

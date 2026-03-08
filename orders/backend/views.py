@@ -6,11 +6,14 @@ from rest_framework import generics, status
 
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
+from drf_spectacular.utils import extend_schema
 from .models import Shop, Category, Product, ProductInfo, Order, OrderItem, Contact
 from .serializers import (
     UserLoginSerializer, UserRegistrationSerializer, ProductInfoSerializer,
     CartItemSerializer, AddContactSerializer, OrderConfirmationSerializer,
-    OrderHistorySerializer, OrderStatusUpdateSerializer
+    OrderHistorySerializer, OrderStatusUpdateSerializer, AddToCartSerializer,
+    UpdateCartItemSerializer, DeleteCartItemSerializer, BatchDeleteCartItemsSerializer,
+    DeleteContactSerializer
 )
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAdminUser, AllowAny
@@ -26,8 +29,10 @@ class LoginView(APIView):
     """
     Вход пользователя.
     """
+    serializer_class = UserLoginSerializer
 
     def post(self, request):
+        serializer = UserLoginSerializer(data=request.data, context={'request': request})
         serializer = UserLoginSerializer(data=request.data, context={'request': request})
         serializer.is_valid(raise_exception=True)
         user = serializer.validated_data["user"]
@@ -46,6 +51,7 @@ class RegisterView(APIView):
     """
     Регистрация пользователя.
     """
+    serializer_class = UserRegistrationSerializer
 
     def post(self, request):
         serializer = UserRegistrationSerializer(data=request.data)
@@ -94,6 +100,15 @@ class CartView(APIView):
     Управление корзиной.
     """
     permission_classes = [IsAuthenticated]
+    serializer_class = AddToCartSerializer
+
+    def get_serializer_class(self):
+        """Возвращаем разные сериализаторы для разных методов"""
+        if self.request.method == 'POST':
+            return AddToCartSerializer
+        elif self.request.method == 'PUT':
+            return UpdateCartItemSerializer
+        return AddToCartSerializer
 
     def get(self, request):
         """
@@ -213,6 +228,7 @@ class OrderConfirmationView(APIView):
     Подтвердить заказ.
     """
     permission_classes = [IsAuthenticated]
+    serializer_class = OrderConfirmationSerializer
 
     def post(self, request):
         serializer = OrderConfirmationSerializer(data=request.data, context={'request': request})
@@ -317,6 +333,7 @@ class DeleteCartItemView(APIView):
     Удалить товар из корзины по ID.
     """
     permission_classes = [IsAuthenticated]
+    serializer_class = DeleteCartItemSerializer
 
     def delete(self, request):
         """
@@ -337,6 +354,7 @@ class DetailedContactListView(generics.ListAPIView):
     """
     Получить детальную информацию о контактах пользователя.
     """
+    serializer_class = AddContactSerializer
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
@@ -389,6 +407,7 @@ class BatchDeleteCartItemView(APIView):
     Удалить несколько товаров из корзины одновременно.
     """
     permission_classes = [IsAuthenticated]
+    serializer_class = BatchDeleteCartItemsSerializer
 
     def post(self, request):
         """
@@ -440,6 +459,7 @@ class ClearCartView(APIView):
 class DeleteContactView(APIView):
     """Удалить контакт по ID."""
     permission_classes = [IsAuthenticated]
+    serializer_class = DeleteContactSerializer
 
     def delete(self, request):
         """Удалить контакт."""
@@ -485,6 +505,7 @@ class OrderStatusUpdateView(APIView):
     Обновление статуса заказа (только для администраторов).
     """
     permission_classes = [IsAdminUser]
+    serializer_class = OrderStatusUpdateSerializer
 
     def put(self, request, order_id):
         """

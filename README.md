@@ -4,13 +4,23 @@
 
 Проект представляет собой систему автоматизации закупок для B2B-клиентов с возможностью импорта товаров из YAML-файлов, управления заказами и интеграции с внешними API.
 
+## Возможности
+
+- ✅ REST API на Django REST Framework
+- ✅ Интерактивная документация Swagger UI
+- ✅ Импорт товаров из YAML файлов
+- ✅ Экспорт товаров в YAML формат
+- ✅ Управление корзиной и заказами
+- ✅ Отправка email через Celery
+- ✅ Ограничение частоты запросов (Throttling)
+- ✅ Тесты с покрытием кода
+
 ## Быстрый запуск
 
 ### 1. Запуск через Docker
 
 ```bash
 # Сборка и запуск контейнеров
-cd orders
 docker-compose up -d --build
 
 # Остановка контейнеров
@@ -34,167 +44,108 @@ python manage.py createsuperuser
 
 ## API документация
 
-### 1. Запуск сервера
-После запуска контейнеров API будет доступен по адресу:
-- **Frontend**: http://localhost:8000
-- **Backend API**: http://localhost:8000/api/
+### Swagger UI
 
-### 2. Использование requests_example.http
+После запуска контейнеров интерактивная документация API доступна по адресам:
 
-Файл `requests_example.http` содержит примеры запросов для тестирования API:
+- **Swagger UI**: http://localhost:8000/api/docs/
+- **OpenAPI Schema**: http://localhost:8000/api/schema/
 
-```http
-### Регистрация пользователя
-POST http://localhost:8000/api/register/
-Content-Type: application/json
+В Swagger UI вы можете:
+- Просмотреть все доступные endpoints
+- Тестировать API прямо из браузера (кнопка "Try it out")
+- Видеть схемы запросов и ответов
 
-{
-  "email": "user@example.com",
-  "password": "password123"
-}
+### Основные endpoints
 
-### Авторизация пользователя
-POST http://localhost:8000/api/login/
-Content-Type: application/json
+| Метод | URL | Описание |
+|-------|-----|----------|
+| POST | `/api/v1/register/` | Регистрация пользователя |
+| POST | `/api/v1/login/` | Вход пользователя |
+| GET | `/api/v1/products/` | Список товаров |
+| GET/POST/PUT/DELETE | `/api/v1/basket/` | Управление корзиной |
+| POST | `/api/v1/contacts/` | Добавить контакт |
+| POST | `/api/v1/orders/confirm/` | Подтвердить заказ |
+| GET | `/api/v1/orders/history/` | История заказов |
+| PUT | `/api/v1/orders/{id}/status/` | Обновить статус заказа (админ) |
 
-{
-  "email": "user@example.com",
-  "password": "password123"
-}
+### Throttling (ограничение частоты запросов)
 
-### Получение списка товаров
-GET http://localhost:8000/api/products/
-Authorization: Token your_token_here
+API защищено от злоупотреблений с помощью throttling:
 
-### Добавление товара в корзину
-POST http://localhost:8000/api/basket/
-Content-Type: application/json
-Authorization: Token your_token_here
+- **Анонимные пользователи**: 100 запросов в минуту
+- **Авторизованные пользователи**: 1000 запросов в минуту
 
-{
-  "product_info_id": 1,
-  "quantity": 1
-}
+При превышении лимита возвращается код 429 Too Many Requests.
 
-### Подтверждение заказа
-POST http://localhost:8000/api/orders/confirm/
-Content-Type: application/json
-Authorization: Token your_token_here
+## Тестирование
 
-{
-  "basket_id": 1,
-  "contact_id": 1
-}
+### Запуск тестов
+
+```bash
+# Запуск всех тестов
+docker-compose exec django python manage.py test
+
+# Запуск тестов с покрытием кода
+docker-compose exec django coverage run manage.py test
+docker-compose exec django coverage report --include="*views.py"
 ```
 
-### 3. Работа с API
+### Результаты тестирования
 
-1. Откройте файл `requests_example.http` в IDE (например, PyCharm)
-2. Запустите нужный запрос
-3. Проверьте ответ от сервера
-4. Используйте полученный токен для аутентификации в последующих запросах
-
-## Административная панель
-
-### 1. Доступ к админке
-- URL: http://localhost:8000/admin/
-- Логин: (созданный при настройке для суперпользователя)
-- Пароль: (указанный при создании для суперпользователя)
-
-### 2. Управление товарами
-
-#### Импорт товаров из YAML
-1. Перейдите в раздел "Импорт товаров"
-2. Загрузите YAML-файл (например, shop5.yaml)
-3. Нажмите "Запустить импорт через Celery"
-4. Дождитесь завершения импорта
-
-#### Экспорт товаров
-1. Перейдите в раздел "Информация о продукте"
-2. Выберите товары для экспорта
-3. Нажмите "Экспорт выбранных товаров"
-4. Скачайте сгенерированный YAML-файл
-
-### 3. Управление пользователями
-
-#### Создание пользователей
-1. Перейдите в раздел "Пользователи"
-2. Нажмите "Добавить пользователя"
-3. Заполните данные и сохраните
-
-#### Управление магазинами
-1. Перейдите в раздел "Магазины"
-2. Добавьте/измените магазины
-3. Управляйте доступом к заказам
-
-### 4. Управление заказами
-
-#### Просмотр заказов
-1. Перейдите в раздел "Заказы"
-2. Фильтруйте по статусу, дате, пользователю
-3. Просматривайте детальную информацию
-
-#### Изменение статуса заказа
-1. Выберите заказ
-2. Нажмите "Изменить"
-3. Обновите статус
-4. Сохраните изменения
+- **Количество тестов**: 32
+- **Покрытие кода views.py**: 65%
 
 ## Структура проекта
 
 ```
 orders/
 ├── backend/           # Backend API
+│   ├── views.py       # API Views
+│   ├── serializers.py # DRF Serializers
+│   ├── models.py      # Django Models
+│   ├── tasks.py       # Celery задачи
+│   └── test_api.py    # Тесты API
 ├── frontend/          # Frontend приложение
 ├── orders/            # Django проект
-└── imports/           # YAML файлы импорта
+│   └── settings.py    # Настройки
+└── data/              # YAML файлы для импорта
 ```
 
 ## Технологический стек
 
 - **Backend**: Django REST Framework
 - **Frontend**: Django Templates
-- **База данных**: PostgreSQL
+- **База данных**: SQLite (development) / PostgreSQL (production)
 - **Очереди**: Celery + Redis
 - **Контейнеризация**: Docker
-- **Виртуализация**: Docker Compose
+- **Документация**: DRF-Spectacular (Swagger UI)
+- **Тестирование**: Django Test Framework + Coverage
 
-## Тестирование
+## Устранение проблем
 
-1. Запуск всех тестов:
+### Контейнер не запускается
 
-# Войти в контейнер
-docker-compose exec django bash
+```bash
+docker-compose logs django
+docker-compose logs redis
+```
 
-# Запустить все тесты
-python manage.py test
+### Проблемы с миграциями
 
-### Проблемы с запуском
+```bash
+docker-compose exec django python manage.py showmigrations
+docker-compose exec django python manage.py migrate
+```
 
-1. **Контейнер не запускается**
-   ```bash
-   docker-compose logs web
-   docker-compose logs db
-   ```
+### Проблемы с Celery
 
-2. **Проблемы с миграциями**
-   ```bash
-   docker-compose exec web python manage.py showmigrations
-   docker-compose exec web python manage.py migrate --fake
-   ```
-
-### Проблемы с импортом
-
-1. **Ошибка формата YAML**
-   - Проверьте синтаксис YAML файла
-   - Используйте валидатор YAML
-
-2. **Проблемы с Celery**
-   ```bash
-   docker-compose logs celery
-   ```
+```bash
+docker-compose logs celery_worker
+```
 
 ## Контакты
+
 https://github.com/AndrejLohankin/automation_of_purchases
 
 *Документация актуальна на 2026 год*
