@@ -43,6 +43,7 @@ docker-compose exec django bash
 
 # Выполнить миграции
 python manage.py migrate
+python manage.py migrate silk
 
 # Создать суперпользователя
 python manage.py createsuperuser
@@ -494,7 +495,8 @@ curl http://localhost:8000/api/v1/orders/history/performance/ \
 ```bash
 # Запуск всех тестов
 docker-compose exec django python manage.py test
-
+# Наделить необходимыми правами
+cd /workspaces/automation_of_purchases/orders && rm -f db.sqlite3 && touch db.sqlite3 && chmod 666 db.sqlite3
 # Запуск тестов с покрытием кода
 docker-compose exec django coverage run manage.py test
 docker-compose exec django coverage report --include="*views.py"
@@ -505,7 +507,7 @@ docker-compose exec django python manage.py test backend.test_api.ThrottlingTest
 ### Результаты тестирования
 
 - **Количество тестов**: 55
-- **Покрытие кода views.py**: 66%
+- **Покрытие кода views.py**: 53%
 
 ## Структура проекта
 
