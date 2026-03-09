@@ -20,6 +20,7 @@ ALLOWED_HOSTS = ['localhost', '127.0.0.1']
 # Application definition
 
 INSTALLED_APPS = [
+    'baton',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -180,4 +181,23 @@ SPECTACULAR_SETTINGS = {
     'DESCRIPTION': 'API for automation of purchases',
     'VERSION': '1.0.0',
     'SERVE_INCLUDE_SCHEMA': False,
+}
+
+# Baton Admin Theme settings
+BATON = {
+    'SITE_TITLE': 'Orders Admin',
+    'SITE_HEADER': 'Автоматизация закупок',
+    'INDEX_TITLE': 'Панель управления',
+    'SUPPORT_HREF': 'https://github.com/AndrejLohankin/automation_of_purchases',
+    'COPYRIGHT': '© 2026 Orders Project',
+    'POWERED_BY': 'Django + Baton',
+    'SHOW_MENU_ITEMS': True,
+    'MENU_COLLAPSED': False,
+    'MENU': (
+        {'type': 'title', 'label': 'Основное'},
+        {'type': 'app', 'app_name': 'backend', 'label': 'Управление'},
+        {'type': 'title', 'label': 'Пользователи'},
+        {'type': 'model', 'app_name': 'auth', 'model_name': 'user', 'label': 'Пользователи'},
+        {'type': 'model', 'app_name': 'auth', 'model_name': 'group', 'label': 'Группы'},
+    ),
 }

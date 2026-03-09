@@ -5,6 +5,7 @@ from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('baton/', include('baton.urls')),
     path('api/v1/', include('backend.urls')), # Подключаем маршруты нашего API
     path('api/admin/trigger-import/', trigger_import, name='trigger_import'),
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
