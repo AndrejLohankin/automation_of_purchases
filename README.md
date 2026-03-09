@@ -19,6 +19,7 @@
 - ✅ Асинхронная обработка изображений товаров (Easy Thumbnails)
 - ✅ Мониторинг ошибок (Sentry)
 - ✅ Кэширование запросов к БД (django-cachalot + Redis)
+- ✅ Профилирование запросов к БД (Django Silk)
 
 ## Быстрый запуск
 
@@ -373,6 +374,94 @@ CACHALOT_CACHE = 'default'
 # Redis
 CACHE_URL=redis://redis:6379/1
 ```
+
+## Профилирование запросов к БД (Django Silk)
+
+Проект интегрирован с **Django Silk** для профилирования и мониторинга производительности запросов к базе данных.
+
+### Возможности Silk
+
+- Перехват и анализ всех HTTP запросов
+- Запись SQL-запросов с временем выполнения
+- Выявление проблем N+1 запросов
+- Анализ производительности API endpoints
+- Профилирование функций
+
+### Доступ к Silk
+
+Откройте в браузере:
+
+- **Silk UI**: http://localhost:8000/silk/
+
+Здесь вы можете:
+- Просмотреть все запросы к API (`/silk/`)
+- Увидеть детальную информацию о каждом запросе (`/silk/requests/`)
+- Проанализировать SQL-запросы (`/silk/profile/`)
+- Просмотреть профилированные данные (`/silk/profile/requests/`)
+
+### Оптимизация N+1 запросов
+
+В ходе анализа проекта была выявлена и исправлена проблема N+1 запросов в `OrderHistoryView`.
+
+**Проблема:** При получении истории заказов для каждого заказа выполнялись отдельные запросы:
+- Загрузка `ordered_items` для каждого заказа
+- Загрузка `product_info` для каждого item
+- Загрузка `contact` для каждого заказа
+
+**Решение:** Добавлен `prefetch_related` в `OrderHistoryView.get_queryset()`:
+
+```python
+def get_queryset(self):
+    return Order.objects.filter(user=self.request.user).exclude(state='basket').prefetch_related(
+        'ordered_items__product_info__product',
+        'ordered_items__product_info__shop',
+        'contact'
+    ).order_by('-dt')
+```
+
+### Тестирование производительности
+
+```bash
+# Тестовый endpoint для демонстрации N+1 проблемы
+curl http://localhost:8000/api/v1/orders/history/performance/ \
+  -H "Authorization: Token YOUR_TOKEN"
+```
+
+Пример ответа:
+```json
+{
+  "message": "Тест производительности OrderHistoryView (N+1 detection)",
+  "without_optimization": {
+    "query_count": 15,
+    "execution_time_ms": 45.2,
+    "orders_count": 5,
+    "note": "Каждый заказ делает отдельный запрос для ordered_items и contact"
+  },
+  "with_optimization": {
+    "query_count": 2,
+    "execution_time_ms": 8.5,
+    "orders_count": 5,
+    "note": "Используется prefetch_related"
+  },
+  "improvement": {
+    "query_reduction": "13 запросов",
+    "time_improvement_ms": 36.7,
+    "recommendation": "Добавить prefetch_related..."
+  }
+}
+```
+
+### Анализ запросов в Silk
+
+1. Перейдите на http://localhost:8000/silk/
+2. Сделайте несколько запросов к API
+3. Откройте детальный вид любого запроса
+4. Во вкладке **SQL** увидите все выполненные запросы к БД
+
+Для выявления N+1 проблем:
+1. Откройте запрос истории заказов
+2. Проверьте количество SQL-запросов
+3. Если запросов много - нужно добавить `prefetch_related` или `select_related`
 
 ### Доступ к админке
 

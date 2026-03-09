@@ -257,8 +257,16 @@ class OrderHistoryView(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        """Возвращаем все заказы пользователя, кроме корзины."""
-        return Order.objects.filter(user=self.request.user).exclude(state='basket').order_by('-dt')
+        """Возвращаем все заказы пользователя, кроме корзины.
+
+        Оптимизация: используем prefetch_related для избежания N+1 запросов.
+        Загружаем ordered_items с связанными product_info, product, shop и контактами.
+        """
+        return Order.objects.filter(user=self.request.user).exclude(state='basket').prefetch_related(
+            'ordered_items__product_info__product',
+            'ordered_items__product_info__shop',
+            'contact'
+        ).order_by('-dt')
 
     def get(self, request):
         """Получить историю заказов с фильтрацией."""
@@ -959,4 +967,87 @@ class CachePerformanceTestView(APIView):
                 'cache': cache_stats,
             },
             'note': 'При повторном запросе количество запросов к БД должно быть 0 (данные из кэша)'
+        })
+
+
+# --- Django Silk: N+1 Query Detection ---
+class OrderHistoryPerformanceTestView(APIView):
+    """
+    Тестовый view для демонстрации проблемы N+1 запросов в OrderHistoryView.
+    Показывает количество запросов к БД при получении истории заказов.
+
+    Проблема: в OrderHistorySerializer.get_total_price используется obj.ordered_items.all()
+    Решение: добавить prefetch_related('ordered_items__product_info')
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        import time
+        from django.db import connection, reset_queries
+        from django.conf import settings
+        from .models import Order
+
+        # Включаем отладку запросов
+        old_debug = settings.DEBUG
+        settings.DEBUG = True
+        reset_queries()
+
+        # Замеряем время выполнения
+        start_time = time.time()
+
+        # === ВАРИАНТ 1: БЕЗ OPTIMIZATION (проблема N+1) ===
+        # Это аналог текущего OrderHistoryView
+        orders_without_optimization = Order.objects.filter(
+            user=request.user
+        ).exclude(state='basket').order_by('-dt')
+
+        # Сериализуем - здесь происходит N+1 запросов!
+        from .serializers import OrderHistorySerializer
+        serializer_bad = OrderHistorySerializer(orders_without_optimization, many=True)
+        data_bad = serializer_bad.data
+
+        query_count_bad = len(connection.queries)
+        time_bad = time.time() - start_time
+
+        # Сбрасываем счётчик запросов
+        reset_queries()
+        start_time = time.time()
+
+        # === ВАРИАНТ 2: С OPTIMIZATION (решение N+1) ===
+        # Добавляем prefetch_related для оптимизации
+        orders_with_optimization = Order.objects.filter(
+            user=request.user
+        ).exclude(state='basket').order_by('-dt').prefetch_related(
+            'ordered_items__product_info__product',
+            'ordered_items__product_info__shop',
+            'contact'
+        )
+
+        serializer_good = OrderHistorySerializer(orders_with_optimization, many=True)
+        data_good = serializer_good.data
+
+        query_count_good = len(connection.queries)
+        time_good = time.time() - start_time
+
+        settings.DEBUG = old_debug
+
+        return Response({
+            'message': 'Тест производительности OrderHistoryView (N+1 detection)',
+            'without_optimization': {
+                'query_count': query_count_bad,
+                'execution_time_ms': round(time_bad * 1000, 2),
+                'orders_count': len(data_bad),
+                'note': 'Каждый заказ делает отдельный запрос для ordered_items и contact (проблема N+1)'
+            },
+            'with_optimization': {
+                'query_count': query_count_good,
+                'execution_time_ms': round(time_good * 1000, 2),
+                'orders_count': len(data_good),
+                'note': 'Используется prefetch_related - все данные загружаются за 2-3 запроса'
+            },
+            'improvement': {
+                'query_reduction': f'{query_count_bad - query_count_good} запросов',
+                'time_improvement_ms': round((time_bad - time_good) * 1000, 2),
+                'recommendation': 'Добавить .prefetch_related("ordered_items__product_info__product", "ordered_items__product_info__shop", "contact") в OrderHistoryView.get_queryset()'
+            }
         })

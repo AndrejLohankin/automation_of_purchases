@@ -35,4 +35,6 @@ urlpatterns = [
     path('sentry-test/', views.SentryTestView.as_view(), name='sentry-test'),
     # --- Cache Performance Test ---
     path('cache-test/', views.CachePerformanceTestView.as_view(), name='cache-test'),
+    # --- Django Silk: N+1 Query Test ---
+    path('orders/history/performance/', views.OrderHistoryPerformanceTestView.as_view(), name='order-history-performance'),
 ]

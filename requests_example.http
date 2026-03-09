@@ -279,3 +279,16 @@ Accept: application/json
 GET {{baseUrl}}/cache-test/
 Accept: application/json
 
+### --- Тест N+1 запросов (Django Silk) ---
+# GET /api/v1/orders/history/performance/
+# Тестовый endpoint для демонстрации проблемы N+1 запросов
+# Показывает разницу в производительности с оптимизацией и без
+# Требуется аутентификация
+GET {{baseUrl}}/orders/history/performance/
+Accept: application/json
+
+### --- Django Silk Profiling UI ---
+# Откройте в браузере для просмотра профилирования запросов:
+# http://127.0.0.1:8000/silk/
+# Здесь можно увидеть все HTTP запросы и SQL-запросы к БД
+
