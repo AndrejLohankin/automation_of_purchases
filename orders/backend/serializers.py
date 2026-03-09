@@ -161,7 +161,8 @@ class OrderConfirmationSerializer(serializers.Serializer):
             order = Order.objects.get(id=value, user=request.user, state='basket')
         except Order.DoesNotExist:
             raise serializers.ValidationError("Корзина не найдена или не принадлежит вам.")
-        return order
+        # Возвращаем id (целое число), а не объект
+        return value
 
     def validate_contact_id(self, value):
         # Проверяем, что контакт принадлежит пользователю
@@ -170,7 +171,8 @@ class OrderConfirmationSerializer(serializers.Serializer):
             contact = Contact.objects.get(id=value, user=request.user)
         except Contact.DoesNotExist:
             raise serializers.ValidationError("Контакт не найден или не принадлежит вам.")
-        return contact
+        # Возвращаем id (целое число), а не объект
+        return value
 
 
 class OrderHistorySerializer(serializers.ModelSerializer):

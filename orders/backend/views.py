@@ -233,8 +233,12 @@ class OrderConfirmationView(APIView):
     def post(self, request):
         serializer = OrderConfirmationSerializer(data=request.data, context={'request': request})
         if serializer.is_valid():
-            basket = serializer.validated_data['basket_id']
-            contact = serializer.validated_data['contact_id']
+            basket_id = serializer.validated_data['basket_id']
+            contact_id = serializer.validated_data['contact_id']
+
+            # Получаем объекты по id
+            basket = get_object_or_404(Order, id=basket_id, user=request.user, state='basket')
+            contact = get_object_or_404(Contact, id=contact_id, user=request.user)
 
             # Обновляем статус корзины
             basket.state = 'confirmed'  # или 'new', как у тебя принято
