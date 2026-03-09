@@ -22,7 +22,7 @@ services:
 
   django:
     build: .
-    command: sh -c "cd /app/orders && python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
+    command: sh -c "cd /app/orders && python manage.py migrate && python manage.py migrate silk && python manage.py runserver 0.0.0.0:8000"
     ports:
       - "8000:8000"
     volumes:

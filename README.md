@@ -47,8 +47,12 @@ python manage.py migrate
 # Создать суперпользователя
 python manage.py createsuperuser
 
-# наделить необходимыми правами
+# Наделить необходимыми правами
 cd /workspaces/automation_of_purchases/orders && rm -f db.sqlite3 && touch db.sqlite3 && chmod 666 db.sqlite3
+
+# Тестирование и покрытие
+docker-compose exec django bash -c "python -m coverage run manage.py test
+python -m coverage report"
 ```
 
 ## API документация
@@ -142,7 +146,7 @@ docker-compose down
 docker-compose up -d --build
 ```
 
-### Тестирование
+### Подключение
 
 После настройки ключей:
 1. Откройте http://localhost:8000/login/
