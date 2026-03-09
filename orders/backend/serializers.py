@@ -200,3 +200,9 @@ class BatchDeleteCartItemsSerializer(serializers.Serializer):
 class DeleteContactSerializer(serializers.Serializer):
     """Сериализатор для удаления контакта"""
     contact_id = serializers.IntegerField(required=False)
+
+
+class SocialAuthSerializer(serializers.Serializer):
+    """Сериализатор для социальной авторизации"""
+    provider = serializers.CharField()
+    access_token = serializers.CharField(required=False)

@@ -10,4 +10,6 @@ urlpatterns = [
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
     path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
     path('', include('frontend.urls')), # Добавляем основные URL для frontend
+    # Социальная авторизация
+    path('auth/', include('social_django.urls', namespace='social')),
 ]

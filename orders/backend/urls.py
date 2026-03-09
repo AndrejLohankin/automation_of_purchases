@@ -25,4 +25,7 @@ urlpatterns = [
     path('contacts/delete/', views.DeleteContactView.as_view(), name='contact-delete'),
     # --- НОВЫЕ ПУТИ ДЛЯ УПРАВЛЕНИЯ ЗАКАЗАМИ ---
     path('orders/<int:order_id>/status/', views.OrderStatusUpdateView.as_view(), name='order-status-update'),
+    # --- Социальная авторизация ---
+    path('auth/google/', views.GoogleAuthView.as_view(), name='auth-google'),
+    path('auth/telegram/', views.TelegramAuthView.as_view(), name='auth-telegram'),
 ]

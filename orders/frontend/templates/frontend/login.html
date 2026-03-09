@@ -32,6 +32,17 @@
                 <div class="text-center mt-3">
                     <p>Еще нет аккаунта? <a href="{% url 'register' %}">Зарегистрироваться</a></p>
                 </div>
+
+                <hr>
+
+                <div class="text-center mt-3">
+                    <p class="mb-2">Или войдите через:</p>
+                    <div class="d-flex justify-content-center gap-2">
+                        <a href="{% url 'social:begin' 'google-oauth2' %}" class="btn btn-outline-danger">
+                            <i class="bi bi-google"></i> Google
+                        </a>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

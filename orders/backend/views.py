@@ -701,3 +701,35 @@ def export_products(request):
 
     except Exception as e:
         return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+# --- Социальная авторизация ---
+
+class GoogleAuthView(APIView):
+    """
+    Начало аутентификации через Google.
+    Перенаправляет пользователя на страницу Google.
+    """
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        from django.urls import reverse
+        # Формируем URL для редиректа на Google OAuth
+        redirect_url = reverse('social:begin', kwargs={'backend': 'google-oauth2'})
+        return Response({
+            'auth_url': request.build_absolute_uri(redirect_url)
+        })
+
+
+class TelegramAuthView(APIView):
+    """
+    Начало аутентификации через Telegram.
+    """
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        from django.urls import reverse
+        redirect_url = reverse('social:begin', kwargs={'backend': 'telegram'})
+        return Response({
+            'auth_url': request.build_absolute_uri(redirect_url)
+        })

@@ -14,6 +14,7 @@
 - ✅ Отправка email через Celery
 - ✅ Ограничение частоты запросов (Throttling)
 - ✅ Тесты с покрытием кода
+- ✅ Социальная авторизация (Google)
 
 ## Быстрый запуск
 
@@ -78,6 +79,68 @@ API защищено от злоупотреблений с помощью throt
 
 При превышении лимита возвращается код 429 Too Many Requests.
 
+## Социальная авторизация
+
+Проект поддерживает вход через Google и Telegram.
+
+### Настройка ключей
+
+Для работы социальной авторизации необходимо получить ключи от провайдеров.
+
+#### Google OAuth 2.0
+
+1. Перейдите в [Google Cloud Console](https://console.cloud.google.com/)
+2. Создайте новый проект
+3. Перейдите в **APIs & Services** → **Credentials**
+4. Нажмите **Create Credentials** → **OAuth client ID**
+5. Выберите **Web application**
+6. Заполните:
+   - **Name**: Orders API
+   - **Authorized JavaScript origins**: 
+     ```
+     http://localhost:8000
+     ```
+   - **Authorized redirect URIs**:
+     ```
+     http://localhost:8000/auth/complete/google-oauth2/
+     ```
+7. Скопируйте **Client ID** и **Client Secret**
+
+
+### Настройка переменных окружения
+
+Создайте файл `.env` в корне проекта:
+
+```bash
+# Копировать пример
+cp .env.example .env
+```
+
+Заполните `.env` полученными ключами:
+
+```env
+# Social Auth - Google
+SOCIAL_AUTH_GOOGLE_OAUTH2_KEY=your-client-id.apps.googleusercontent.com
+SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET=your-client-secret
+
+# Social Auth - Telegram
+SOCIAL_AUTH_TELEGRAM_BOT_TOKEN=your-bot-token
+```
+
+Перезапустите контейнеры:
+
+```bash
+docker-compose down
+docker-compose up -d --build
+```
+
+### Тестирование
+
+После настройки ключей:
+1. Откройте http://localhost:8000/login/
+2. Нажмите кнопку "Google" или "Telegram"
+3. Авторизуйтесь через выбранный сервис
+
 ## Тестирование
 
 ### Запуск тестов
@@ -89,12 +152,14 @@ docker-compose exec django python manage.py test
 # Запуск тестов с покрытием кода
 docker-compose exec django coverage run manage.py test
 docker-compose exec django coverage report --include="*views.py"
+# Отдельный TestCase для DRF throttling
+docker-compose exec django python manage.py test backend.test_api.ThrottlingTestCase -v 2
 ```
 
 ### Результаты тестирования
 
-- **Количество тестов**: 32
-- **Покрытие кода views.py**: 65%
+- **Количество тестов**: 55
+- **Покрытие кода views.py**: 66%
 
 ## Структура проекта
 
