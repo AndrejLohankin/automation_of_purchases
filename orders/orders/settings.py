@@ -21,6 +21,7 @@ ALLOWED_HOSTS = ['localhost', '127.0.0.1']
 
 INSTALLED_APPS = [
     'baton',
+    'easy_thumbnails',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -193,11 +194,4 @@ BATON = {
     'POWERED_BY': 'Django + Baton',
     'SHOW_MENU_ITEMS': True,
     'MENU_COLLAPSED': False,
-    'MENU': (
-        {'type': 'title', 'label': 'Основное'},
-        {'type': 'app', 'app_name': 'backend', 'label': 'Управление'},
-        {'type': 'title', 'label': 'Пользователи'},
-        {'type': 'model', 'app_name': 'auth', 'model_name': 'user', 'label': 'Пользователи'},
-        {'type': 'model', 'app_name': 'auth', 'model_name': 'group', 'label': 'Группы'},
-    ),
 }

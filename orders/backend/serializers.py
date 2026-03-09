@@ -63,9 +63,45 @@ class ProductParameterSerializer(serializers.ModelSerializer):
 
 
 class ProductSerializer(serializers.ModelSerializer):
+    # Добавляем URL для разных размеров миниатюр
+    image_small = serializers.SerializerMethodField()
+    image_medium = serializers.SerializerMethodField()
+    image_large = serializers.SerializerMethodField()
+    image_original = serializers.ImageField(source='image', read_only=True)
+
     class Meta:
         model = Product
-        fields = ('name',)
+        fields = ('id', 'name', 'category', 'image_original', 'image_small', 'image_medium', 'image_large')
+
+    def get_image_small(self, obj):
+        """Возвращает URL миниатюры 64x64"""
+        if obj.image:
+            try:
+                from easy_thumbnails.files import get_thumbnailer
+                return get_thumbnailer(obj.image)['small'].url
+            except Exception:
+                return obj.image.url
+        return None
+
+    def get_image_medium(self, obj):
+        """Возвращает URL миниатюры 150x150"""
+        if obj.image:
+            try:
+                from easy_thumbnails.files import get_thumbnailer
+                return get_thumbnailer(obj.image)['medium'].url
+            except Exception:
+                return obj.image.url
+        return None
+
+    def get_image_large(self, obj):
+        """Возвращает URL миниатюры 300x300"""
+        if obj.image:
+            try:
+                from easy_thumbnails.files import get_thumbnailer
+                return get_thumbnailer(obj.image)['large'].url
+            except Exception:
+                return obj.image.url
+        return None
 
 
 class ShopSerializer(serializers.ModelSerializer):

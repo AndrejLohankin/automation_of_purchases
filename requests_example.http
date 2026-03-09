@@ -212,3 +212,54 @@ Content-Type: application/json
         "Диагональ (дюйм)": "6.1"
     }
 }
+
+
+### --- Загрузка изображения товара по URL (асинхронно) ---
+# POST /api/v1/products/upload/
+# Загружает изображение по URL и создаёт миниатюры через Celery
+# Требуется администратор
+POST {{baseUrl}}/products/upload/
+Content-Type: application/json
+
+{
+    "product_id": 41,
+    "image_url": "https://main-cdn.sbermegamarket.ru/big2/hlr-system/1514742415/100023032316b3.jpg"
+}
+
+### --- Загрузка изображения товара по URL (асинхронно) ---
+# POST /api/v1/products/upload/
+# Загружает изображение по URL и создаёт миниатюры через Celery
+# Требуется администратор
+POST {{baseUrl}}/products/upload/
+Content-Type: application/json
+
+{
+    "product_id": 33,
+    "image_url": "https://uima.ru/upload/iblock/acc/ip8rdtsfqswkx0vjbztljkdvw92vwkja.jpg"
+}
+
+### --- Пакетная загрузка изображений товаров ---
+# POST /api/v1/products/batch-upload/
+# Загружает изображения для нескольких товаров асинхронно
+# Требуется администратор
+POST {{baseUrl}}/products/batch-upload/
+Content-Type: application/json
+
+{
+    "products": [
+        {"product_id": 1, "image_url": "https://http.cat/200.jpg"},
+        {"product_id": 2, "image_url": "https://http.cat/201.jpg"},
+        {"product_id": 3, "image_url": "https://http.cat/202.jpg"}
+    ]
+}
+
+### --- Получение списка товаров с миниатюрами ---
+# GET /api/v1/products/
+# Теперь возвращает URL миниатюр в ответе:
+# - image_original - оригинальное изображение
+# - image_small - миниатюра 64x64
+# - image_medium - миниатюра 150x150
+# - image_large - миниатюра 300x300
+GET {{baseUrl}}/products/
+Accept: application/json
+

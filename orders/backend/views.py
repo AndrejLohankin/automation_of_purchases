@@ -733,3 +733,136 @@ class TelegramAuthView(APIView):
         return Response({
             'auth_url': request.build_absolute_uri(redirect_url)
         })
+
+# --- Асинхронная обработка изображений ---
+
+class ProductImageUploadView(APIView):
+    """
+    Загрузка изображения товара.
+    Изображение обрабатывается асинхронно через Celery.
+    """
+    permission_classes = [IsAdminUser]
+
+    def post(self, request):
+        """
+        Загрузить изображение для товара.
+
+        Способы загрузки:
+        1. По URL (асинхронно):
+           {"product_id": 1, "image_url": "https://example.com/image.jpg"}
+
+        2. Из файла (multipart/form-data):
+           - product_id: 1
+           - image: <файл>
+
+        3. Base64 в JSON (синхронно):
+           {"product_id": 1, "image_base64": "<base64 строка>", "filename": "image.jpg"}
+        """
+        product_id = request.data.get('product_id')
+        image_url = request.data.get('image_url')
+        image_file = request.FILES.get('image')
+        image_base64 = request.data.get('image_base64')
+        filename = request.data.get('filename', 'image.jpg')
+
+        if not product_id:
+            return Response({'error': 'product_id обязателен'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            product = Product.objects.get(id=product_id)
+        except Product.DoesNotExist:
+            return Response({'error': 'Товар не найден'}, status=status.HTTP_404_NOT_FOUND)
+
+        # Если передан URL изображения
+        if image_url:
+            from .tasks import process_product_image
+            task = process_product_image.delay(product_id, image_url)
+            return Response({
+                'message': 'Изображение будет загружено асинхронно',
+                'task_id': task.id,
+                'product_id': product_id
+            }, status=status.HTTP_202_ACCEPTED)
+
+        # Если передан файл изображения
+        elif image_file:
+            product.image = image_file
+            product.save()
+
+            from easy_thumbnails.files import generate_all_aliases
+            generate_all_aliases(product.image, include_global=False)
+
+            return Response({
+                'message': 'Изображение успешно загружено',
+                'product_id': product_id,
+                'image_url': request.build_absolute_uri(product.image.url)
+            }, status=status.HTTP_201_CREATED)
+
+        # Если передано base64 изображение
+        elif image_base64:
+            import base64
+            try:
+                # Декодируем base64
+                image_data = base64.b64decode(image_base64)
+                # Определяем расширение по имени файла
+                ext = filename.split('.')[-1] if '.' in filename else 'jpg'
+                if ext.lower() not in ['jpg', 'jpeg', 'png', 'gif', 'webp']:
+                    ext = 'jpg'
+                final_filename = f"{product_id}_{int(datetime.now().timestamp())}.{ext}"
+
+                # Сохраняем файл
+                from django.core.files.base import ContentFile
+                product.image.save(final_filename, ContentFile(image_data), save=True)
+
+                # Генерируем миниатюры
+                from easy_thumbnails.files import generate_all_aliases
+                generate_all_aliases(product.image, include_global=False)
+
+                return Response({
+                    'message': 'Изображение успешно загружено',
+                    'product_id': product_id,
+                    'image_url': request.build_absolute_uri(product.image.url)
+                }, status=status.HTTP_201_CREATED)
+            except Exception as e:
+                return Response({'error': f'Ошибка при обработке изображения: {str(e)}'}, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response({'error': 'Необходимо передать image_url, image (файл) или image_base64'}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class ProductImageBatchUploadView(APIView):
+    """
+    Пакетная загрузка изображений для нескольких товаров.
+    """
+    permission_classes = [IsAdminUser]
+
+    def post(self, request):
+        """
+        Загрузить изображения для нескольких товаров.
+
+        Пример запроса:
+        POST /api/products/batch-upload/
+        {
+            "products": [
+                {"product_id": 1, "image_url": "https://example.com/1.jpg"},
+                {"product_id": 2, "image_url": "https://example.com/2.jpg"},
+                {"product_id": 3}
+            ]
+        }
+        """
+        products = request.data.get('products', [])
+
+        if not products:
+            return Response({'error': 'products обязателен'}, status=status.HTTP_400_BAD_REQUEST)
+
+        from .tasks import batch_process_images
+        product_ids = [p['product_id'] for p in products if 'product_id' in p]
+
+        if not product_ids:
+            return Response({'error': 'Необходимо указать product_id'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Запускаем пакетную обработку
+        result = batch_process_images.delay(product_ids)
+
+        return Response({
+            'message': 'Задача на пакетную загрузку изображений запущена',
+            'task_id': result.id,
+            'total_products': len(product_ids)
+        }, status=status.HTTP_202_ACCEPTED)

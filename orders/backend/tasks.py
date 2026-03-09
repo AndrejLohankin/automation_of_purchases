@@ -5,6 +5,12 @@ from django.core.mail import send_mail
 from django.conf import settings
 from .models import Order, User, ConfirmEmailToken, ImportTask
 import yaml
+import logging
+import requests
+from urllib.parse import urlparse
+from django.core.files.base import ContentFile
+
+logger = logging.getLogger(__name__)
 
 
 @shared_task
@@ -123,3 +129,101 @@ def do_import(import_task_id):
     except Exception as e:
         print(f"[CELERY] Import failed: {e}")
         return False
+
+# ============ Асинхронная обработка изображений ============
+
+@shared_task(bind=True, max_retries=3)
+def process_product_image(self, product_id, image_url=None):
+    """
+    Асинхронная задача для обработки изображения товара.
+    Создает миниатюры различных размеров.
+
+    Args:
+        product_id: ID продукта
+        image_url: URL изображения (опционально)
+    """
+    from backend.models import Product
+    from easy_thumbnails.files import generate_all_aliases
+
+    try:
+        product = Product.objects.get(id=product_id)
+
+        if image_url:
+            # Скачиваем изображение по URL
+            response = requests.get(image_url, timeout=30)
+            if response.status_code == 200:
+                # Получаем имя файла из URL
+                parsed_url = urlparse(image_url)
+                filename = parsed_url.path.split('/')[-1]
+                if not filename:
+                    filename = f'product_{product_id}.jpg'
+
+                # Сохраняем изображение
+                image_content = ContentFile(response.content)
+                product.image.save(filename, image_content, save=True)
+                logger.info(f"Downloaded image for product {product_id}: {filename}")
+            else:
+                logger.warning(f"Failed to download image for product {product_id}: HTTP {response.status_code}")
+                return {'status': 'error', 'message': f'HTTP {response.status_code}'}
+
+        # Генерируем миниатюры
+        if product.image:
+            generate_all_aliases(product.image, include_global=False)
+            logger.info(f"Generated thumbnails for product {product_id}")
+            return {'status': 'success', 'product_id': product_id}
+        else:
+            return {'status': 'warning', 'message': 'No image to process'}
+
+    except Product.DoesNotExist:
+        logger.error(f"Product {product_id} not found")
+        return {'status': 'error', 'message': 'Product not found'}
+    except Exception as exc:
+        logger.exception(f"Error processing image for product {product_id}")
+        self.retry(exc=exc, countdown=60)
+
+
+@shared_task
+def batch_process_images(product_ids):
+    """
+    Пакетная обработка изображений для нескольких товаров.
+
+    Args:
+        product_ids: Список ID товаров
+    """
+    results = []
+    for product_id in product_ids:
+        result = process_product_image.delay(product_id)
+        results.append({'product_id': product_id, 'task_id': result.id})
+
+    return {
+        'status': 'queued',
+        'total': len(product_ids),
+        'tasks': results
+    }
+
+
+@shared_task
+def cleanup_old_images(days=30):
+    """
+    Удаление старых неиспользуемых изображений.
+    Запускается периодически (например, раз в неделю).
+    """
+    from django.utils import timezone
+    from datetime import timedelta
+
+    cutoff_date = timezone.now() - timedelta(days=days)
+
+    # Находим товары с изображениями
+    old_products = Product.objects.filter(
+        image__isnull=False,
+        updated_at__lt=cutoff_date
+    )
+
+    deleted_count = 0
+    for product in old_products:
+        if product.image:
+            product.image.delete(save=True)
+            deleted_count += 1
+
+    logger.info(f"Cleaned up {deleted_count} old product images")
+    return {'deleted_count': deleted_count}

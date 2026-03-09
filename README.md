@@ -16,6 +16,7 @@
 - ✅ Тесты с покрытием кода
 - ✅ Социальная авторизация (Google)
 - ✅ Улучшенная админка (Baton Theme)
+- ✅ Асинхронная обработка изображений товаров (Easy Thumbnails)
 
 ## Быстрый запуск
 
@@ -154,6 +155,94 @@ docker-compose up -d --build
 - Поддержка переводов (AI функции)
 - Адаптивный дизайн для мобильных устройств
 - Улучшенные списки с фильтрами в модальных окнах
+
+## Асинхронная обработка изображений
+
+Проект поддерживает автоматическое создание миниатюр изображений товаров с использованием **Easy Thumbnails** и **Celery**.
+
+### Доступные размеры миниатюр
+
+- **Small**: 64x64 (обрезка по центру)
+- **Medium**: 150x150 (обрезка по центру)
+- **Large**: 300x300 (обрезка по центру)
+
+### API Endpoints
+
+| Метод | URL | Описание |
+|-------|-----|----------|
+| POST | `/api/v1/products/upload/` | Загрузить изображение товара |
+| POST | `/api/v1/products/batch-upload/` | Пакетная загрузка изображений |
+
+### Загрузка изображения по URL
+
+```bash
+# Загрузка изображения по URL (асинхронная)
+curl -X POST http://localhost:8000/api/v1/products/upload/ \
+  -H "Authorization: Token YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"product_id": 1, "image_url": "https://example.com/image.jpg"}'
+```
+
+Ответ:
+```json
+{
+  "message": "Изображение будет загружено асинхронно",
+  "task_id": "abc123",
+  "product_id": 1
+}
+```
+
+### Загрузка файла
+
+```bash
+# Загрузка файла изображения
+curl -X POST http://localhost:8000/api/v1/products/upload/ \
+  -H "Authorization: Token YOUR_TOKEN" \
+  -F "product_id=1" \
+  -F "image=@/path/to/image.jpg"
+```
+
+### Пакетная загрузка
+
+```bash
+# Пакетная загрузка изображений
+curl -X POST http://localhost:8000/api/v1/products/batch-upload/ \
+  -H "Authorization: Token YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "products": [
+      {"product_id": 1, "image_url": "https://example.com/1.jpg"},
+      {"product_id": 2, "image_url": "https://example.com/2.jpg"}
+    ]
+  }'
+```
+
+### Ответ API с миниатюрами
+
+При получении списка товаров теперь возвращаются URL миниатюр:
+
+```json
+{
+  "id": 1,
+  "product": {
+    "id": 1,
+    "name": "Смартфон",
+    "image_original": "/media/products/2024/01/01/image.jpg",
+    "image_small": "/media/products/2024/01/01/image.64x64.jpg",
+    "image_medium": "/media/products/2024/01/01/image.150x150.jpg",
+    "image_large": "/media/products/2024/01/01/image.300x300.jpg"
+  }
+}
+```
+
+### Удаление старых изображений
+
+Для очистки старых неиспользуемых изображений запустите задачу:
+
+```python
+from backend.tasks import cleanup_old_images
+cleanup_old_images.delay(days=30)  # Удалить изображения старше 30 дней
+```
 
 ### Доступ к админке
 

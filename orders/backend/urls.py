@@ -28,4 +28,7 @@ urlpatterns = [
     # --- Социальная авторизация ---
     path('auth/google/', views.GoogleAuthView.as_view(), name='auth-google'),
     path('auth/telegram/', views.TelegramAuthView.as_view(), name='auth-telegram'),
+    # --- Загрузка изображений товаров ---
+    path('products/upload/', views.ProductImageUploadView.as_view(), name='product-image-upload'),
+    path('products/batch-upload/', views.ProductImageBatchUploadView.as_view(), name='product-image-batch-upload'),
 ]

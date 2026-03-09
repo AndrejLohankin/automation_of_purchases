@@ -28,6 +28,7 @@ python -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
 python manage.py migrate
+cd /workspaces/automation_of_purchases/orders && rm -f db.sqlite3 && touch db.sqlite3 && chmod 666 db.sqlite3
 python manage.py createsuperuser
 docker-compose up -d --build
 
