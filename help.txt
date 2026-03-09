@@ -27,10 +27,12 @@ git push --force origin имя_ветки
 python -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
+docker-compose up -d --build
 docker-compose exec django python manage.py migrate
+docker-compose exec django python manage.py migrate silk
 docker-compose exec django python manage.py createsuperuser
 cd /workspaces/automation_of_purchases/orders && rm -f db.sqlite3 && touch db.sqlite3 && chmod 666 db.sqlite3
-docker-compose up -d --build
+
 
 docker-compose exec django bash
 

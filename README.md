@@ -46,6 +46,9 @@ python manage.py migrate
 
 # Создать суперпользователя
 python manage.py createsuperuser
+
+# наделить необходимыми правами
+cd /workspaces/automation_of_purchases/orders && rm -f db.sqlite3 && touch db.sqlite3 && chmod 666 db.sqlite3
 ```
 
 ## API документация
