@@ -33,4 +33,6 @@ urlpatterns = [
     path('products/batch-upload/', views.ProductImageBatchUploadView.as_view(), name='product-image-batch-upload'),
     # --- Sentry Test ---
     path('sentry-test/', views.SentryTestView.as_view(), name='sentry-test'),
+    # --- Cache Performance Test ---
+    path('cache-test/', views.CachePerformanceTestView.as_view(), name='cache-test'),
 ]

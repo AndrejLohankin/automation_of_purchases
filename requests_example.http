@@ -271,3 +271,11 @@ Accept: application/json
 GET {{baseUrl}}/sentry-test/
 Accept: application/json
 
+### --- Тест производительности кэширования ---
+# GET /api/v1/cache-test/
+# Тестовый endpoint для проверки работы кэширования
+# Показывает количество запросов к БД и время выполнения
+# При повторном запросе количество запросов к БД должно быть 0
+GET {{baseUrl}}/cache-test/
+Accept: application/json
+

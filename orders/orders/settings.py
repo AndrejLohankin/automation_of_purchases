@@ -22,6 +22,7 @@ ALLOWED_HOSTS = ['localhost', '127.0.0.1']
 INSTALLED_APPS = [
     'baton',
     'easy_thumbnails',
+    'cachalot',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -75,6 +76,21 @@ DATABASES = {
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
+
+# Cache Configuration with Redis
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.redis.RedisCache',
+        'LOCATION': os.environ.get('CACHE_URL', 'redis://redis:6379/1'),
+        'KEY_PREFIX': 'orders',
+        'TIMEOUT': 300,
+    }
+}
+
+# Cachalot settings
+CACHALOT_ENABLED = True
+CACHALOT_TIMEOUT = 60
+CACHALOT_CACHE = 'default'
 
 
 # Password validation
@@ -174,6 +190,7 @@ REST_FRAMEWORK = {
         'anon': '100/minute',
         'user': '1000/minute',
     },
+    'DEFAULT_CACHE_RESPONSE_TIMEOUT': 60,
 }
 
 # DRF Spectacular settings

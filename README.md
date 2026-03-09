@@ -18,6 +18,7 @@
 - ✅ Улучшенная админка (Baton Theme)
 - ✅ Асинхронная обработка изображений товаров (Easy Thumbnails)
 - ✅ Мониторинг ошибок (Sentry)
+- ✅ Кэширование запросов к БД (django-cachalot + Redis)
 
 ## Быстрый запуск
 
@@ -301,6 +302,78 @@ curl -X GET http://localhost:8000/api/v1/sentry-test/ \
 - **Environment**: development (или production)
 - **Release**: orders@1.0.0
 
+## Кэширование запросов к БД
+
+Проект использует **django-cachalot** с Redis для автоматического кэширования запросов к базе данных.
+
+### Возможности
+
+- Автоматическое кэширование ORM-запросов
+- Инвалидация кэша при изменениях в БД
+- Использование Redis для хранения кэша
+- Значительное уменьшение времени отклика при повторных запросах
+
+### Как это работает
+
+1. При первом запросе данные загружаются из БД и сохраняются в Redis
+2. При повторном запросе данные берутся из кэша (0 запросов к БД)
+3. При изменении данных (POST/PUT/DELETE) кэш автоматически инвалидируется
+
+### Тестирование производительности
+
+```bash
+# Тестовый endpoint показывает:
+# - количество запросов к БД
+# - время выполнения
+# - информацию о кэше
+
+curl http://localhost:8000/api/v1/cache-test/
+```
+
+Пример ответа:
+```json
+{
+  "message": "Тест производительности кэширования",
+  "results": {
+    "products_count": 10,
+    "query_count": 0,
+    "execution_time_ms": 2.5,
+    "cache": {
+      "cache_backend": "RedisCache",
+      "cache_enabled": true
+    }
+  },
+  "note": "При повторном запросе количество запросов к БД должно быть 0"
+}
+```
+
+### Настройка кэша
+
+По умолчанию используется Redis с базой данных 1 (отдельная от Celery). Настройки в `settings.py`:
+
+```python
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.redis.RedisCache',
+        'LOCATION': os.environ.get('CACHE_URL', 'redis://redis:6379/1'),
+        'KEY_PREFIX': 'orders',
+        'TIMEOUT': 300,
+    }
+}
+
+# Настройки cachalot
+CACHALOT_ENABLED = True
+CACHALOT_TIMEOUT = 60
+CACHALOT_CACHE = 'default'
+```
+
+Также добавьте переменную `CACHE_URL` в `.env`:
+
+```env
+# Redis
+CACHE_URL=redis://redis:6379/1
+```
+
 ### Доступ к админке
 
 - **URL**: http://localhost:8000/admin/
@@ -354,7 +427,7 @@ orders/
 └── data/              # YAML файлы для импорта
 ```
 
-## Технологический стек
+- **Кэширование**: django-cachalot + Redis
 
 - **Backend**: Django REST Framework
 - **Frontend**: Django Templates

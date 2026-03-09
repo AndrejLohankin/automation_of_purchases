@@ -900,3 +900,63 @@ class SentryTestView(APIView):
                 'sentry_status': 'enabled',
                 'error': str(e)
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+# --- CacheOps Performance Test ---
+class CachePerformanceTestView(APIView):
+    """
+    Тестовый view для измерения производительности кэширования.
+    Показывает количество запросов к БД и время выполнения.
+    """
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        import time
+        from django.db import connection, reset_queries
+        from django.conf import settings
+
+        # Включаем отладку запросов
+        old_debug = settings.DEBUG
+        settings.DEBUG = True
+        reset_queries()
+
+        # Замеряем время выполнения
+        start_time = time.time()
+
+        # Выполняем тестовый запрос к БД (список товаров)
+        products = ProductInfo.objects.select_related('product', 'shop').prefetch_related(
+            'product_parameters__parameter'
+        )[:10]
+
+        # Сериализуем данные
+        data = []
+        for p in products:
+            data.append({
+                'id': p.id,
+                'name': p.product.name,
+                'shop': p.shop.name if p.shop else None,
+                'price': str(p.price),
+            })
+
+        execution_time = time.time() - start_time
+        query_count = len(connection.queries)
+
+        settings.DEBUG = old_debug
+
+        # Информация о кэше
+        from django.core.cache import cache
+        cache_stats = {
+            'cache_backend': str(type(cache)).split('.')[-1].replace("'>", ""),
+            'cache_enabled': True,
+        }
+
+        return Response({
+            'message': 'Тест производительности кэширования',
+            'results': {
+                'products_count': len(data),
+                'query_count': query_count,
+                'execution_time_ms': round(execution_time * 1000, 2),
+                'cache': cache_stats,
+            },
+            'note': 'При повторном запросе количество запросов к БД должно быть 0 (данные из кэша)'
+        })
