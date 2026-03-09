@@ -866,3 +866,37 @@ class ProductImageBatchUploadView(APIView):
             'task_id': result.id,
             'total_products': len(product_ids)
         }, status=status.HTTP_202_ACCEPTED)
+
+
+# --- Sentry Test ---
+class SentryTestView(APIView):
+    """
+    Тестовый view для проверки работы Sentry.
+    При вызове намеренно вызывает исключение для проверки мониторинга.
+    """
+    permission_classes = [IsAdminUser]
+
+    def get(self, request):
+        """
+        Тестовый endpoint для проверки Sentry.
+        """
+        # Проверяем, есть ли DSN
+        from django.conf import settings
+        if not getattr(settings, 'SENTRY_DSN', None):
+            return Response({
+                'message': 'Sentry не настроен. Установите SENTRY_DSN в переменных окружения.',
+                'sentry_status': 'disabled'
+            })
+
+        # Намеренно вызываем исключение для проверки
+        try:
+            raise ValueError("Тестовая ошибка Sentry! Это сообщение должно появиться в Sentry.")
+        except ValueError as e:
+            # Логируем исключение в Sentry
+            import sentry_sdk
+            sentry_sdk.capture_exception(e)
+            return Response({
+                'message': 'Тестовая ошибка отправлена в Sentry',
+                'sentry_status': 'enabled',
+                'error': str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

@@ -263,3 +263,11 @@ Content-Type: application/json
 GET {{baseUrl}}/products/
 Accept: application/json
 
+### --- Тест Sentry (проверка мониторинга ошибок) ---
+# GET /api/v1/sentry-test/
+# Тестовый endpoint для проверки работы Sentry
+# Требуется администратор
+# При вызове намеренно генерирует ошибку, которая отправляется в Sentry
+GET {{baseUrl}}/sentry-test/
+Accept: application/json
+

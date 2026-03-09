@@ -17,6 +17,7 @@
 - ✅ Социальная авторизация (Google)
 - ✅ Улучшенная админка (Baton Theme)
 - ✅ Асинхронная обработка изображений товаров (Easy Thumbnails)
+- ✅ Мониторинг ошибок (Sentry)
 
 ## Быстрый запуск
 
@@ -140,7 +141,7 @@ docker-compose up -d --build
 
 После настройки ключей:
 1. Откройте http://localhost:8000/login/
-2. Нажмите кнопку "Google" или "Telegram"
+2. Нажмите кнопку "Google"
 3. Авторизуйтесь через выбранный сервис
 
 ## Админка (Baton Theme)
@@ -243,6 +244,62 @@ curl -X POST http://localhost:8000/api/v1/products/batch-upload/ \
 from backend.tasks import cleanup_old_images
 cleanup_old_images.delay(days=30)  # Удалить изображения старше 30 дней
 ```
+
+## Мониторинг ошибок (Sentry)
+
+Проект интегрирован с **Sentry** для отслеживания ошибок и мониторинга производительности.
+
+### Возможности Sentry
+
+- Автоматический сбор исключений Django
+- Интеграция с Celery для отслеживания ошибок в фоновых задачах
+- Трассировка запросов (traces)
+- Детальная информация об ошибках с контекстом
+- Уведомления об ошибках
+
+### Настройка Sentry
+
+1. Зарегистрируйтесь на [sentry.io](https://sentry.io)
+2. Создайте новый проект для Django
+3. Скопируйте **DSN** из настроек проекта
+4. Добавьте DSN в файл `.env`:
+
+```env
+# Sentry
+SENTRY_DSN=https://example@sentry.io/1234567
+```
+
+5. Перезапустите контейнеры:
+
+```bash
+docker-compose down
+docker-compose up -d --build
+```
+
+**Примечание:** Переменная `SENTRY_DSN` автоматически передаётся в контейнеры через `docker-compose.yml`.
+
+### API Endpoint для тестирования
+
+```bash
+# Тестовый endpoint для проверки Sentry
+curl -X GET http://localhost:8000/api/v1/sentry-test/ \
+  -H "Authorization: Token YOUR_ADMIN_TOKEN"
+```
+
+Ответ (с кодом 500):
+```json
+{
+  "message": "Тестовая ошибка отправлена в Sentry",
+  "sentry_status": "enabled",
+  "error": "Тестовая ошибка Sentry!"
+}
+```
+
+После вызова вы увидите ошибку в панели Sentry:
+- **Level**: Error
+- **Message**: Тестовая ошибка Sentry!
+- **Environment**: development (или production)
+- **Release**: orders@1.0.0
 
 ### Доступ к админке
 

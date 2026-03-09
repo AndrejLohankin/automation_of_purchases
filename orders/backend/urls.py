@@ -31,4 +31,6 @@ urlpatterns = [
     # --- Загрузка изображений товаров ---
     path('products/upload/', views.ProductImageUploadView.as_view(), name='product-image-upload'),
     path('products/batch-upload/', views.ProductImageBatchUploadView.as_view(), name='product-image-batch-upload'),
+    # --- Sentry Test ---
+    path('sentry-test/', views.SentryTestView.as_view(), name='sentry-test'),
 ]
